@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name='16SGenusIDer',
+    name='GenusFinder',
     version="0.0.0",
     description='Given a bacterial 16S gene, infer the genus by placing it on a tree of similar sequences',
     author='Charlie Bushman',
@@ -12,7 +12,7 @@ setuptools.setup(
     python_requires=">=3.6",
     entry_points={
         'console_scripts': [
-            'idgenus=16SGenusIDer.command:main',
+            'idgenus=GenusFinder.command:main',
         ],
     },
     install_requires=[

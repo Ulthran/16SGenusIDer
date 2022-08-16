@@ -1,6 +1,6 @@
 import argparse
 
-from .db import create_db, update_db, find_similar
+from .db import create_db, find_similar
 from .tree import build_tree, identify_genus
 
 def main(argv=None):
@@ -11,4 +11,4 @@ def main(argv=None):
     args = p.parse_args(argv)
 
     create_db()
-    identify_genus(build_tree(find_similar(args.seq)), args.seq)
+    identify_genus(build_tree(find_similar(args.seq), args.seq))
