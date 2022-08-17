@@ -16,9 +16,9 @@ setuptools.setup(
         ],
     },
     install_requires=[
-        'eutils',
-        'vsearch',
         'dendropy',
+        'tqdm',
+        'vsearch',
     ],
     classifiers=[
         'Intended Audience :: Science/Research',
