@@ -1,3 +1,5 @@
+import subprocess
+
 class Tree():
     def __init__(self, tree, unknown) -> None:
         self.tree = tree
@@ -13,7 +15,16 @@ class Tree():
 # @param unknown is a 16S sequence that will also be included
 # @return is the Tree built by RAxML
 def build_tree(seqs: list, unknown: str) -> Tree:
-    return ""
+    print(seqs)
+
+    subprocess.run(["raxmlHPC",
+    "-m", "GTRCAT",
+    "-n", "genus",
+    "-p", "10000",
+    "-s", "nearest.fasta"])
+
+    with open("genus.final") as f:
+        return Tree(f.readline(), unknown)
 
 # Determines the genus of the unknown
 # @param tree is a Tree object to use for identification
