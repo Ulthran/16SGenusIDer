@@ -13,9 +13,11 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'idgenus=GenusFinder.command:main',
+            'prepdb=GenusFinder.prepare_strain_data:main',
         ],
     },
     install_requires=[
+        'ete3',
         'eutils',
         'tqdm',
     ],
