@@ -1,0 +1,6 @@
+name: genusfinder
+channels:
+  - bioconda
+dependencies:
+  - muscle
+  - raxml
