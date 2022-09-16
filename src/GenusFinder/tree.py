@@ -1,4 +1,7 @@
+import glob
 import os
+import pathlib
+import shutil
 import subprocess
 from collections import OrderedDict
 from ete3 import Tree
@@ -8,10 +11,10 @@ from ete3 import Tree
 # @param unknown is a 16S sequence that will also be included
 # @return is the newick format tree built by RAxML
 def build_tree(seqs: list, unknown: str) -> str:
-    with open("RAxML_bipartitions.output_bootstrap.tre") as f:
-        return f.readline()
+    #with open("RAxML_bipartitions.output_bootstrap.tre") as f:
+    #    return f.readline()
     
-    with open("db/type_species.fasta") as db, open("nearest.fasta", "w") as f:
+    with open("db/type_species.fasta") as db, open("output/nearest.fasta", "w") as f:
         f.write(f">UNKNOWN\n")
         f.write(f"{unknown}\n")
         
@@ -25,8 +28,10 @@ def build_tree(seqs: list, unknown: str) -> str:
                 flag = ""
 
     subprocess.run(["muscle",
-    "-align", "nearest.fasta",
-    "-output", "nearest_aligned.fasta"])
+    "-align", "output/nearest.fasta",
+    "-output", "output/nearest_aligned.fasta"])
+
+    full_output_path = os.path.join(pathlib.Path().resolve(), "output")
 
     subprocess.run(["raxmlHPC",
     "-b", "392781",
@@ -34,30 +39,30 @@ def build_tree(seqs: list, unknown: str) -> str:
     "-m", "GTRCAT",
     "-n", "genus1",
     "-p", "10000",
-    "-s", "nearest_aligned.fasta"])
+    "-s", "output/nearest_aligned.fasta",
+    "-w", full_output_path])
 
     subprocess.run(["raxmlHPC",
     "-m", "GTRCAT",
     "-n", "genus2",
     "-p", "10000",
-    "-s", "nearest_aligned.fasta"])
+    "-s", "output/nearest_aligned.fasta",
+    "-w", full_output_path])
 
     subprocess.run(["raxmlHPC",
     "-f", "b",
     "-m", "PROTGAMMAILG",
     "-n", "output_bootstrap.tre",
-    "-t", "RAxML_bestTree.genus2",
-    "-z", "RAxML_bootstrap.genus"])
+    "-t", "output/RAxML_bestTree.genus2",
+    "-z", "output/RAxML_bootstrap.genus1",
+    "-w", full_output_path])
     
-    #try:
-    #    os.remove("nearest.fasta")
-    #    os.remove("nearest_aligned.fasta")
-    #    os.remove("nearest_aligned.fasta.reduced")
-    #except OSError:
-    #    pass
+    with open("output/RAxML_bipartitions.output_bootstrap.tre") as f:
+        tree = f.readline()
 
-    with open("RAxML_bipartitions.output_bootstrap.tre") as f:
-        return f.readline()
+    shutil.rmtree("output")
+
+    return tree
 
 # Get the genus associated with the given type species id
 # @param id is the 16S id
@@ -103,13 +108,6 @@ def identify_genus(tree: str, unknown: str) -> str:
             break
         node = node.up
 
-    #try:
-    #    os.remove("RAxML_bestTree.genus")
-    #    os.remove("RAxML_info.genus")
-    #    os.remove("RAxML_log.genus")
-    #    os.remove("RAxML_parsimonyTree.genus")
-    #    os.remove("RAxML_result.genus")
-    #except OSError:
-    #    pass
+    print(t.write())
     
     return ""
