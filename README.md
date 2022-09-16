@@ -11,6 +11,12 @@ conda activate genusfinder
 pip install .
 ```
 
+## Running
+
+```
+idgenus ATCGATCGATCGATCG
+```
+
 ## Steps
 
  - Fetch all type species 16S sequences from Tree of Life
