@@ -6,11 +6,12 @@ from .tree import build_tree, identify_genus
 
 def main(argv=None):
     p = argparse.ArgumentParser()
-    p.add_argument("seq", help="the 16S sequence to be identified")
+    p.add_argument("--seq", help="the 16S sequence to be identified")
+    p.add_argument("--id", help="the identity value to use with vsearch", default="0.9")
 
     args = p.parse_args(argv)
 
     if not os.path.exists("output/"):
         os.makedirs("output/")
 
-    identify_genus(build_tree(find_similar(args.seq), args.seq), args.seq)
+    identify_genus(build_tree(find_similar(args.seq, args.id), args.seq), args.seq)

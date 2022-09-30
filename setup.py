@@ -14,11 +14,13 @@ setuptools.setup(
         'console_scripts': [
             'idgenus=GenusFinder.command:main',
             'prepdb=GenusFinder.prepare_strain_data:main',
+            'traingenus=GenusFinder.train_command:main',
         ],
     },
     install_requires=[
         'ete3',
         'eutils',
+        'sklearn',
         'tqdm',
     ],
     classifiers=[

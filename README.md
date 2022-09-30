@@ -14,7 +14,7 @@ pip install .
 ## Running
 
 ```
-idgenus ATCGATCGATCGATCG
+idgenus ATCGATCGATCGATCG...GCTACTATACGA
 ```
 
 ## Steps
@@ -23,3 +23,4 @@ idgenus ATCGATCGATCGATCG
  - Search this db for XX similar seqs
  - Build tree including the query
  - Examine nearest neighbors (subtrees snipped at high confidence intervals) for common genus
+ - Examine nearest neighbors (non-topological distance between nodes) for common genus

@@ -3,7 +3,6 @@ import os
 import pathlib
 import shutil
 import subprocess
-from collections import OrderedDict
 from ete3 import Tree
 
 # Builds tree using RAxML
@@ -66,12 +65,25 @@ def build_tree(seqs: list, unknown: str) -> str:
 
 # Get the genus associated with the given type species id
 # @param id is the 16S id
+# @param lookup is a dictionary containing already-looked-up ids
+# NOTE: lookup should be updated by the caller of this function
 # @return is the genus name
-def get_genus(id: str) -> str:
+def get_genus(id: str, lookup: dict = None) -> str:
+    if lookup:
+        if id in lookup:
+            return lookup[id]
+    
     with open("db/type_species.fasta") as f:
         for l in f.readlines():
             if l[0] == ">" and id in l:
                 return l.split("\t")[1].split(" ")[0]
+
+# Display probabilities
+# @param d is the probability list
+def display_probs(d: list):
+    for k, p in d:
+        print(f"{k}: {round(p * 100, 5)}%")
+    print("\n")
 
 # Determines the genus of the unknown
 # @param tree is a newick format object to use for identification
@@ -79,18 +91,31 @@ def get_genus(id: str) -> str:
 # @return is the best guess of the genus for the unknown in tree
 def identify_genus(tree: str, unknown: str) -> str:
     t = Tree(tree)
-    #dists = OrderedDict()
-    #for node in t.traverse("postorder"):
-        #print(node.name)
-        #node.name = get_genus(node.name)
-        #print(node.name)
-    #    dists[node.name] = node.get_distance("UNKNOWN")
+    lookup = dict()
 
-    #dists = sorted(dists.items(), key=lambda x: x[1])
-    #dists = list(filter(lambda x: x[0] != "UNKNOWN" and x[0] != "", dists))
+    # Calculate distance-based genus probabilities
+    # Iterate through each node and take the inverse of the distance to the UNKNOWN
+    # as the addition it makes to the probability
+    dist_prob = dict()
+    for n in t.traverse():
+        if n.name != "" and n.name != "UNKNOWN": # Nodes with "" for a name are not leaves
+            d = t.get_distance("UNKNOWN", n.name)
+            g = get_genus(n.name, lookup)
+            lookup[n.name] = g
+            dist_prob[g] = dist_prob[g] + (1 / d) if g in dist_prob else (1 / d)
 
-    #for node, dist in dists:
-    #    print(t.get_common_ancestor("UNKNOWN", node))
+    dist_prob = {k: v / sum(dist_prob.values()) for k, v in dist_prob.items()} # Normalize probabilities
+    dist_prob = sorted(dist_prob.items(), key=lambda x: -x[1])
+
+    # Calculate bootstrap-based probabilities
+    # Iterate up through subtrees, starting with the smallest one containing the UNKNOWN, and at each level
+    # the bootstrap value determines how much of the remaining total probability is claimed by the genuses
+    # there
+    # E.g. if the first subtree has a bootstrap of 93, we can be pretty sure the UNKNOWN should be on the same
+    # branch as the others in this tree so their contributions will be 93% of the total probabilities. If the
+    # next branch is 52, it will account for 52% of the remaining 7% of the total probabilities, and so on.
+    boot_prob = dict()
+    remaining_frac = 100
 
     node = t.search_nodes(name="UNKNOWN")[0]
     node = node.up
@@ -99,15 +124,27 @@ def identify_genus(tree: str, unknown: str) -> str:
         print(node)
         print(f"Dist: {node.dist}")
         print(f"Bootstrap: {node.support}")
-        for n in node.traverse("postorder"):
+        factor = node.support * remaining_frac
+        sub_dict = dict()
+        for n in node.traverse():
             if(n.name != "UNKNOWN" and n.name != ""):
-                print(get_genus(n.name))
+                g = get_genus(n.name, lookup)
+                sub_dict[g] = sub_dict[g] + 1 if g in sub_dict else 1
+
+        sub_dict = {k: v / sum(sub_dict.values()) for k, v in sub_dict.items()}
+        for k, v in sub_dict.items():
+            boot_prob[k] = boot_prob[k] + factor * v if k in boot_prob else factor * v
+        remaining_frac = remaining_frac - (node.support / 100) * remaining_frac
 
         count += 1
         if count > 4:
             break
         node = node.up
 
-    print(t.write())
-    
-    return ""
+    boot_prob = {k: v / sum(boot_prob.values()) for k, v in boot_prob.items()} # Normalize probabilities
+    boot_prob = sorted(boot_prob.items(), key=lambda x: -x[1])
+
+    print("Distance based probabilities:\n")
+    display_probs(dist_prob)
+    print("Bootstrap based probabilities:\n")
+    display_probs(boot_prob)
