@@ -9,9 +9,8 @@ import os
 
 from GenusFinder.download import (
     get_url, clean,
-    LTP_METADATA_URL, LTP_SEQS_URL,
-    GG_SEQS_URL, GG_ACCESSIONS_URL,
-    process_ltp_seqs, process_greengenes_seqs,
+    LTP_METADATA_URL, LTP_SEQS_URL, LTP_ALIGN_URL,
+    process_ltp_seqs,
     )
 
 
@@ -30,16 +29,9 @@ def main(argv=None):
     p.add_argument("--ltp_seqs_fp", help=(
         "Filepath for unaligned 16S sequences from LTP (.fasta file) "
         "[default: download from LTP website]"))
-    p.add_argument("--download_greengenes", action="store_true",
-        help="Download GreenGenes reference files [default: False]")
-    p.add_argument("--greengenes_accessions_fp", help=(
-        "Filepath for table of GreenGenes accession numbers "
-        "(.txt or .txt.gz file) "
-        "[default: download from GreenGenes mirror]"))
-    p.add_argument("--greengenes_seqs_fp", help=(
-        "Filepath for unaligned 16S reference sequences "
-        "(.fasta or .fasta.gz file) "
-        "[default: download from GreenGenes mirror]"))
+    p.add_argument("--ltp_align_fp", help=(
+        "Filepath for aligned 16S sequences from LTP (.fasta file) "
+        "[default: download from LTP website]"))
     p.add_argument("--clean", action="store_true", help=(
         "Remove all downloaded and processed files."))
     p.add_argument("--db-dir", help=(
@@ -62,17 +54,7 @@ def main(argv=None):
     ltp_seqs_fp = use_or_download(
         args.ltp_seqs_fp, LTP_SEQS_URL, db_dir)
     process_ltp_seqs(ltp_seqs_fp, db_dir)
+    ltp_align_fp = use_or_download(
+        args.ltp_align_fp, LTP_ALIGN_URL, db_dir)
+    process_ltp_seqs(ltp_align_fp, db_dir)
 
-    if args.download_greengenes:
-        gg_seqs_fp = use_or_download(
-            args.greengenes_seqs_fp, GG_SEQS_URL, db_dir)
-        gg_accessions_fp = use_or_download(
-            args.greengenes_accessions_fp, GG_ACCESSIONS_URL, db_dir)
-        process_greengenes_seqs(gg_seqs_fp, gg_accessions_fp, db_dir)
-
-def download_type_strain_data(output_dir=None, metadata_fp=None, seqs_fp=None):
-    if output_dir is None:
-        output_dir = os.getcwd()
-    metadata_fp = use_or_download(metadata_fp, LTP_METADATA_URL, output_dir)
-    seqs_fp = use_or_download(seqs_fp, LTP_SEQS_URL, output_dir)
-    return process_ltp_seqs(seqs_fp, output_dir)

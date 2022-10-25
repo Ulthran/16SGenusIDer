@@ -6,7 +6,7 @@ Given a bacterial 16S gene, infer the genus by placing it on a tree of similar s
 ```
 git clone https://github.com/Ulthran/GenusFinder.git
 cd GenusFinder
-conda install --file genusfinder_env.yaml
+conda env create --file genusfinder_env.yaml
 conda activate genusfinder
 pip install .
 ```

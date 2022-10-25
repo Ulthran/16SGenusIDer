@@ -1,5 +1,6 @@
-from ete3 import Tree
+import csv
 import numpy as np
+from ete3 import Tree
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
@@ -32,7 +33,12 @@ def learn_curve(type_species: str, t: Tree):
     y_true, y_pred = y_test, lr.predict(X_test)
     print(classification_report(y_true, y_pred))
 
-    print("\n")
-    print(lr.coef_.ravel())
-    print(lr.intercept_.ravel())
+    #print("\n")
+    #print(lr.coef_.ravel())
+    #print(lr.intercept_.ravel())
+
+    return lr
+
+def probability_for(lr, dist):
+    return lr.predict_proba(dist)
 

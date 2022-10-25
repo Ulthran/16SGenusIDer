@@ -5,11 +5,63 @@ import shutil
 import subprocess
 from ete3 import Tree
 
+from train import learn_curve, probability_for
+
+def insert_on_LTP_tree(seq: str) -> Tree:
+    with open("output/query.fasta", "w") as f:
+        f.write(f">UNKNOWN\n")
+        f.write(f"{seq}\n")
+
+    subprocess.run(["muscle",
+    "-profile",
+    "-in1", "db/LTP_01_2022_aligned.fasta",
+    "-in2", "output/query.fasta",
+    "-out", "output/combined_aligned.fasta"])
+
+    full_output_path = os.path.join(pathlib.Path().resolve(), "output")
+
+    subprocess.run(["raxmlHPC",
+    "-m", "GTRCAT",
+    "-n", "placeQ",
+    "-p", "10000",
+    "-f", "y", # "-f v" would give a more robust answer but take longer, might be worth it for just one seq to insert
+    "-s", "output/combined_aligned.fasta",
+    "-t", "output/tree_LTP_all_01_2022.ntree",
+    "-w", full_output_path])
+
+def get_nearby_species() -> list:
+    with open("output/RAxML_bestTree.placeQ") as f:
+        t = Tree(f.readline())
+    
+    node = t.search_nodes(name="UNKNOWN")[0]
+    while len(list(node.iter_leaves())) < 50 and node:
+        node = node.up
+    
+    return [n.name for n in node.iter_leaves()]
+    
+def is_type_species(species: str) -> bool:
+    return True
+
+def distance_to_unknown(species: str) -> float:
+    return 1
+
+def determine_probabilities(seq: str):
+    insert_on_LTP_tree(seq)
+    with open("output/RAxML_bestTree.placeQ") as f:
+        t = Tree(f.readline())
+    nearby_species = get_nearby_species()
+    nearby_type_species = [name for name in nearby_species if is_type_species(name)]
+    lrs = {name: learn_curve(name, t) for name in nearby_type_species}
+    distances = {name: distance_to_unknown(name) for name in nearby_type_species}
+    probs = {name: probability_for(lr, distances[name]) for name, lr in lrs}
+    print(probs)
+
 # Builds tree using RAxML
 # @param seqs is a list of 16S sequences for building the tree
 # @param unknown is a 16S sequence that will also be included
+# @param keep_true determines whether or not to delete the output files
 # @return is the newick format tree built by RAxML
-def build_tree(seqs: list, unknown: str) -> str:
+def build_tree(seqs: list, unknown: str, keep_output: bool) -> str:
     #with open("RAxML_bipartitions.output_bootstrap.tre") as f:
     #    return f.readline()
     
@@ -59,7 +111,8 @@ def build_tree(seqs: list, unknown: str) -> str:
     with open("output/RAxML_bipartitions.output_bootstrap.tre") as f:
         tree = f.readline()
 
-    shutil.rmtree("output")
+    if not keep_output:
+        shutil.rmtree("output")
 
     return tree
 

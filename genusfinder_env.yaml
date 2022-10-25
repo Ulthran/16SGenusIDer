@@ -2,6 +2,6 @@ name: genusfinder
 channels:
   - bioconda
 dependencies:
-  - muscle
+  - muscle=3.8
   - raxml
   - vsearch

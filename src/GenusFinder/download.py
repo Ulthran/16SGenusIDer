@@ -11,7 +11,7 @@ import subprocess
 import urllib.request
 from io import StringIO
 
-### from unassigner.parse import parse_fasta, parse_greengenes_accessions ###
+### from unassigner.parse import parse_fasta ###
 def parse_fasta(f, trim_desc=False):
     """Parse a FASTA format file.
     Parameters
@@ -47,13 +47,6 @@ def parse_fasta(f, trim_desc=False):
         else:
             seq.write(line.replace(" ", "").replace("U", "T"))
     yield desc, seq.getvalue()
-
-def parse_greengenes_accessions(f):
-    for line in f:
-        if line.startswith("#"):
-            continue
-        line = line.strip()
-        yield line.split("\t")
 ###
 
 LTP_METADATA_COLS = [
@@ -71,26 +64,21 @@ LTP_METADATA_COLS = [
     "NJ_support_pk4_ltp"
     ]
 LTP_METADATA_URL = \
-    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_09_2021.csv"
+    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022.csv"
 LTP_SEQS_URL = \
-    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_09_2021_blastdb.fasta"
-GG_SEQS_URL = \
-    "ftp://greengenes.microbio.me/greengenes_release/gg_13_5/gg_13_5.fasta.gz"
-GG_ACCESSIONS_URL = \
-    "ftp://greengenes.microbio.me/greengenes_release/gg_13_5/gg_13_5_accessions.txt.gz"
+    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_blastdb.fasta"
+LTP_ALIGN_URL = \
+    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_aligned.fasta"
 SPECIES_FASTA_FP = "type_species.fasta"
 REFSEQS_FASTA_FP = "refseqs.fasta"
-GG_DUPLICATE_FP = "gg_duplicate_ids.txt"
 
 def clean(db_dir):
     fps = [
         url_fp(LTP_METADATA_URL),
         url_fp(LTP_SEQS_URL),
+        url_fp(LTP_ALIGN_URL),
         SPECIES_FASTA_FP,
-        gunzip_fp(url_fp(GG_SEQS_URL)),
-        gunzip_fp(url_fp(GG_ACCESSIONS_URL)),
         REFSEQS_FASTA_FP,
-        GG_DUPLICATE_FP
         ]
     for fp in fps:
         fp_full = os.path.join(db_dir, fp)
@@ -132,45 +120,4 @@ def process_ltp_seqs(input_fp, output_fp=SPECIES_FASTA_FP):
                 species_name = vals[3]
                 f_out.write(
                     ">{0}\t{1}\n{2}\n".format(accession, species_name, seq))
-    return output_fp
-
-
-def process_greengenes_seqs(seqs_fp, accessions_fp, output_fp=REFSEQS_FASTA_FP):
-    duplicates_fp = GG_DUPLICATE_FP
-    if os.path.isdir(output_fp):
-        duplicates_fp = os.path.join(output_fp, duplicates_fp)
-        output_fp = os.path.join(output_fp, REFSEQS_FASTA_FP)
-
-    # Extract table of accessions
-    if accessions_fp.endswith(".gz"):
-        subprocess.check_call(["gunzip", "-f", accessions_fp])
-        accessions_fp = gunzip_fp(accessions_fp)
-
-    # Load accessions
-    gg_accessions = {}
-    with open(accessions_fp) as f:
-        for ggid, src, acc in parse_greengenes_accessions(f):
-            gg_accessions[ggid] = (acc, src)
-
-    # Extract FASTA file
-    if seqs_fp.endswith(".gz"):
-        subprocess.check_call(["gunzip", "-f", seqs_fp])
-        seqs_fp = gunzip_fp(seqs_fp)
-
-    # Remove duplicate reference seqs
-    uniq_seqs = collections.defaultdict(list)
-    with open(seqs_fp) as f:
-        for ggid, seq in parse_fasta(f):
-            uniq_seqs[seq].append(ggid)
-
-    with open(duplicates_fp, "w") as dups:
-        with open(output_fp, "w") as f:
-            for seq, ggids in uniq_seqs.items():
-                ggid = ggids[0]
-                if len(ggids) > 1:
-                    dups.write(" ".join(ggids))
-                # Re-label seqs with accession numbers
-                acc, src = gg_accessions[ggid]
-                f.write(">%s %s %s\n%s\n" % (acc, src, ggid, seq))
-
     return output_fp
