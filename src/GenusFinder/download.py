@@ -69,6 +69,8 @@ LTP_SEQS_URL = \
     "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_blastdb.fasta"
 LTP_ALIGN_URL = \
     "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_aligned.fasta"
+LTP_TREE_URL = \
+    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/tree_LTP_all_01_2022.ntree"
 SPECIES_FASTA_FP = "type_species.fasta"
 REFSEQS_FASTA_FP = "refseqs.fasta"
 

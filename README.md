@@ -9,6 +9,7 @@ cd GenusFinder
 conda env create --file genusfinder_env.yaml
 conda activate genusfinder
 pip install .
+prepdb
 ```
 
 ## Running
