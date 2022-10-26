@@ -54,7 +54,7 @@ def main(argv=None):
         args.ltp_metadata_fp, LTP_METADATA_URL, db_dir)
     ltp_seqs_fp = use_or_download(
         args.ltp_seqs_fp, LTP_SEQS_URL, db_dir)
-    process_ltp_seqs(ltp_seqs_fp, db_dir)
+    #process_ltp_seqs(ltp_seqs_fp, db_dir)
     ltp_align_fp = use_or_download(
         args.ltp_align_fp, LTP_ALIGN_URL, db_dir)
     ltp_tree_fp = use_or_download(
