@@ -10,7 +10,7 @@ import os
 from GenusFinder.download import (
     LTP_TREE_URL, get_url, clean,
     LTP_METADATA_URL, LTP_SEQS_URL, LTP_ALIGN_URL,
-    process_ltp_seqs,
+    #process_ltp_seqs,
     )
 
 
