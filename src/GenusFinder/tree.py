@@ -18,11 +18,14 @@ def insert_on_LTP_tree(seq: str) -> Tree:
     "-in2", "output/query.fasta",
     "-out", "output/combined_aligned.fasta"])
 
+    "sed 's/U/T/g' output/combined_aligned.fasta > output" # Replace Us with Ts for RAxML??
+    "sed 's/\./-/g' output/combined_aligned.fasta > output" # '.'s preceed alignemnts?
+
     full_output_path = os.path.join(pathlib.Path().resolve(), "output")
 
     subprocess.run(["raxmlHPC",
     "-m", "GTRCAT",
-    "-n", "placeQ",
+    "-n", "combined",
     "-p", "10000",
     "-f", "y", # "-f v" would give a more robust answer but take longer, might be worth it for just one seq to insert
     "-s", "output/combined_aligned.fasta",
