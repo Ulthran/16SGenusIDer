@@ -1,11 +1,12 @@
 import glob
 import os
-import pathlib
 import shutil
 import subprocess
 from ete3 import Tree
+from pathlib import Path
 
 from train import learn_curve, probability_for
+from Aligner import MuscleAligner
 
 
 def insert_on_LTP_tree(seq: str) -> Tree:
@@ -13,17 +14,12 @@ def insert_on_LTP_tree(seq: str) -> Tree:
         f.write(f">UNKNOWN\n")
         f.write(f"{seq}\n")
 
-    subprocess.run(
-        [
-            "muscle",
-            "-profile",
-            "-in1",
-            "db/LTP_01_2022_aligned.fasta",
-            "-in2",
-            "output/query.fasta",
-            "-out",
-            "output/combined_aligned.fasta",
-        ]
+    aligner = MuscleAligner()
+    aligner.call(
+        True,
+        Path("db/LTP_01_2022_aligned.fasta"),
+        Path("output/query.fasta"),
+        Path("output/combined_aligned.fasta"),
     )
 
     "sed 's/U/T/g' output/combined_aligned.fasta > output"  # Replace Us with Ts for RAxML??
