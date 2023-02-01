@@ -1,4 +1,11 @@
 # GenusFinder
+
+<!-- Badges start -->
+[![Tests](https://github.com/Ulthran/GenusFinder/actions/workflows/tests.yml/badge.svg)](https://github.com/Ulthran/GenusFinder/actions/workflows/tests.yml)
+[![Super-Linter](https://github.com/Ulthran/GenusFinder/actions/workflows/linter.yml/badge.svg)](https://github.com/Ulthran/GenusFinder/actions/workflows/linter.yml)
+[![Upload Python Package](https://github.com/Ulthran/GenusFinder/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Ulthran/GenusFinder/actions/workflows/python-publish.yml)
+<!-- Badges end -->
+
 Given a bacterial 16S gene, infer the genus by placing it on a tree of similar sequences
 
 ## Installation
