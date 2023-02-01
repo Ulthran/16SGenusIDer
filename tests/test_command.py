@@ -1,24 +1,27 @@
 import os
 import shutil
 import tempfile
-import unittest
+import pytest
 
 from GenusFinder.command import main
 
-class CommandTests(unittest.TestCase):
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-        self.db_fp = os.path.join(self.temp_dir, "16S.db")
-        self.db_content = ("> genus1\n"
-            "acgtacgg\n")
 
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
-    
-    def test_collect_genomes(self):
-        main([
-            "acgtacgt",
-            "--db", self.db_fp
-        ])
+@pytest.fixture
+def temp_dir():
+    temp_dir = tempfile.mkdtemp()
+    db_fp = os.path.join(temp_dir, "16S.db")
+    db_content = "> genus1\nacgtacgg\n"
+    with open(db_fp, "w") as f:
+        f.write(db_content)
 
-        self.assertEqual(1, 1)
+    yield temp_dir, db_fp
+
+    shutil.rmtree(temp_dir)
+
+
+def test_seq_id(temp_dir):
+    temp_dir, db_fp = temp_dir
+
+    main(["--seq", "acgtacgg", "--work_dir", temp_dir])
+
+    assert 1 == 1

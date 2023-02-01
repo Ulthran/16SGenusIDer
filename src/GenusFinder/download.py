@@ -47,6 +47,8 @@ def parse_fasta(f, trim_desc=False):
         else:
             seq.write(line.replace(" ", "").replace("U", "T"))
     yield desc, seq.getvalue()
+
+
 ###
 
 LTP_METADATA_COLS = [
@@ -61,18 +63,17 @@ LTP_METADATA_COLS = [
     "url_lpsn_ltp",
     "tax_ltp",
     "rel_ltp",
-    "NJ_support_pk4_ltp"
-    ]
-LTP_METADATA_URL = \
+    "NJ_support_pk4_ltp",
+]
+LTP_METADATA_URL = (
     "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022.csv"
-LTP_SEQS_URL = \
-    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_blastdb.fasta"
-LTP_ALIGN_URL = \
-    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_aligned.fasta"
-LTP_TREE_URL = \
-    "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/tree_LTP_all_01_2022.ntree"
+)
+LTP_SEQS_URL = "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_blastdb.fasta"
+LTP_ALIGN_URL = "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/LTP_01_2022_aligned.fasta"
+LTP_TREE_URL = "https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/tree_LTP_all_01_2022.ntree"
 SPECIES_FASTA_FP = "type_species.fasta"
 REFSEQS_FASTA_FP = "refseqs.fasta"
+
 
 def clean(db_dir):
     fps = [
@@ -81,7 +82,7 @@ def clean(db_dir):
         url_fp(LTP_ALIGN_URL),
         SPECIES_FASTA_FP,
         REFSEQS_FASTA_FP,
-        ]
+    ]
     for fp in fps:
         fp_full = os.path.join(db_dir, fp)
         if os.path.exists(fp_full):
@@ -89,17 +90,19 @@ def clean(db_dir):
 
 
 def url_fp(url):
-    return url.split('/')[-1]
+    return url.split("/")[-1]
 
 
 def gunzip_fp(fp):
     return fp[:-3]
 
+
 def get_url(url, fp):
     logging.info("Downloading {0}".format(url))
-    with urllib.request.urlopen(url) as resp, open(fp, 'wb') as f:
+    with urllib.request.urlopen(url) as resp, open(fp, "wb") as f:
         shutil.copyfileobj(resp, f)
     return fp
+
 
 def process_01_2022_ltp_seqs(input_fp, output_fp=SPECIES_FASTA_FP):
     if os.path.isdir(output_fp):
@@ -117,10 +120,11 @@ def process_01_2022_ltp_seqs(input_fp, output_fp=SPECIES_FASTA_FP):
                 accession_times_previously_seen = accession_cts[accession]
                 accession_cts[accession] += 1
                 if accession_times_previously_seen > 0:
-                    accession = "{0}_repeat{1}".format(accession, accession_times_previously_seen)
+                    accession = "{0}_repeat{1}".format(
+                        accession, accession_times_previously_seen
+                    )
                 species_name = vals[3]
-                f_out.write(
-                    ">{0}\t{1}\n{2}\n".format(accession, species_name, seq))
+                f_out.write(">{0}\t{1}\n{2}\n".format(accession, species_name, seq))
     return output_fp
 
 
@@ -140,8 +144,9 @@ def process_09_2021_ltp_seqs(input_fp, output_fp=SPECIES_FASTA_FP):
                 accession_times_previously_seen = accession_cts[accession]
                 accession_cts[accession] += 1
                 if accession_times_previously_seen > 0:
-                    accession = "{0}_repeat{1}".format(accession, accession_times_previously_seen)
+                    accession = "{0}_repeat{1}".format(
+                        accession, accession_times_previously_seen
+                    )
                 species_name = vals[3]
-                f_out.write(
-                    ">{0}\t{1}\n{2}\n".format(accession, species_name, seq))
+                f_out.write(">{0}\t{1}\n{2}\n".format(accession, species_name, seq))
     return output_fp
