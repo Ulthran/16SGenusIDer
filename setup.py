@@ -20,6 +20,7 @@ setuptools.setup(
     install_requires=[
         "ete3",
         "eutils",
+        "numpy",
         "sklearn",
         "tqdm",
     ],
