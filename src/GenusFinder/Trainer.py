@@ -6,19 +6,23 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
 
-class Trainer():
+
+class Trainer:
     def __init__(self, tree_fp: Path) -> None:
         with open(tree_fp) as f:
             self.t = Tree(f.readline())
 
-
     def train(self, training_tree: Tree, min_neighbors: int = 50):
-        ts = [s for s in self.get_nearby_species(min_neighbors) if self.is_type_species(s)]
+        ts = [
+            s for s in self.get_nearby_species(min_neighbors) if self.is_type_species(s)
+        ]
         lrs = {s: self.learn_curve(s, training_tree) for s in ts}
-        probs = {s: self.probability_for(lr, self.distance_to_unknown) for s, lr in lrs.items()}
+        probs = {
+            s: self.probability_for(lr, self.distance_to_unknown)
+            for s, lr in lrs.items()
+        }
         logging.info(f"{probs}")
         return probs
-
 
     def get_nearby_species(self, min_neighbors: int) -> list:
         node = self.t.search_nodes(name="UNKNOWN")[0]
@@ -27,14 +31,11 @@ class Trainer():
 
         return [n.name for n in node.iter_leaves()]
 
-
     def is_type_species(self, species: str) -> bool:
         return True
 
-
     def distance_to_unknown(self, species: str) -> float:
         return 1
-
 
     def determine_probabilities(seq: str):
         insert_on_LTP_tree(seq)
@@ -46,7 +47,6 @@ class Trainer():
         distances = {name: distance_to_unknown(name) for name in nearby_type_species}
         probs = {name: probability_for(lr, distances[name]) for name, lr in lrs}
         print(probs)
-        
 
     @staticmethod
     def learn_curve(type_species: str, t: Tree):

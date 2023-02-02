@@ -21,7 +21,7 @@ setuptools.setup(
         "ete3",
         "eutils",
         "numpy",
-        "sklearn",
+        "scikit-learn",
         "tqdm",
     ],
     classifiers=[

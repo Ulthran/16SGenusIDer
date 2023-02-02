@@ -13,13 +13,14 @@ LTP_VERSION = "06_2022"
 LTP_URL = f"https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/"
 
 
-class DB():
+class DB:
     """
     Controller for all of GenusFinder's database files
     Maintains a 16S db made from an NCBI eutils query and mulitiple LTP files
     """
+
     def __init__(self, fp: Path, esearch_api_key: str) -> None:
-        self.root_fp = fp
+        self.root_fp = Path(fp)
         self.key = esearch_api_key
 
         self._16S_db = self.root_fp / "16S.db"
@@ -27,30 +28,27 @@ class DB():
         self.LTP_blastdb_fp = self.root_fp / f"LTP_{LTP_VERSION}_blastdb.fasta"
         self.LTP_tree_fp = self.root_fp / f"tree_LTP_all_{LTP_VERSION}.ntree"
         self.LTP_csv_fp = self.root_fp / f"LTP_{LTP_VERSION}.csv"
-    
+
     def get_16S_db(self) -> Path:
         if not self._16S_db.exists():
             logging.info(f"Creating {self._16S_db}...")
             self._create_16S_db()
-        
+        else:
+            logging.info(f"Found {self._16S_db}, skipping download...")
+
         return self._16S_db
-    
 
     def get_LTP_aligned(self) -> Path:
         return self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
-    
 
     def get_LTP_blastdb(self) -> Path:
         return self._get_LTP(self.LTP_blastdb_fp, self.LTP_blastdb_fp.name)
 
-
     def get_LTP_tree(self) -> Path:
         return self._get_LTP(self.LTP_tree_fp, self.LTP_tree_fp.name)
-    
 
     def get_LTP_csv(self) -> Path:
         return self._get_LTP(self.LTP_csv_fp, self.LTP_csv_fp.name)
-    
 
     def _get_LTP(self, fp: Path, name: str) -> Path:
         if not fp.exists():
@@ -58,14 +56,15 @@ class DB():
             logging.info(f"Fetching {url}...")
             with urlopen(url) as resp, open(fp, "wb") as f:
                 shutil.copyfileobj(resp, f)
+        else:
+            logging.info(f"Found {fp}, skipping download...")
 
         return fp
-
 
     def _create_16S_db(self):
         def chunker(seq, size):
             return (seq[pos : pos + size] for pos in range(0, len(seq), size))
-        
+
         search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=33175%5BBioProject%5D%20OR%2033317%5BBioProject%5D&retmax=25000"
         search_response = requests.get(search_url)
         search_tree = ET.fromstring(search_response.content)

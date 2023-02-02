@@ -4,7 +4,7 @@ import subprocess as sp
 import sys
 
 # A template wrapper class for CLI interactions
-class CLI():
+class CLI:
     def __init__(self) -> None:
         self.args = []
 
@@ -12,10 +12,10 @@ class CLI():
         try:
             sp.run(self.args, check=True)
         except sp.CalledProcessError as e:
-            logging.error(f"{e.cmd} returned code {e.returncode}")
+            logging.error(f"{' '.join(e.cmd)} returned code {e.returncode}")
             sys.exit()
         except sp.TimeoutExpired as e:
-            logging.error(f"{e.cmd} timed out (timeout: {e.timeout})")
+            logging.error(f"{' '.join(e.cmd)} timed out (timeout: {e.timeout})")
             sys.exit()
 
 
@@ -38,5 +38,20 @@ class RAxMLTreeBuilder(CLI):
         self.args = ["raxmlHPC"]
 
     def call(self, m: str, n: str, p: int, f: str, s: Path, t: Path, w: Path):
-        self.args += ["-m", m, "-n", n, "-p", str(p), "-f", f, "-s", s, "-t", t, "-w", w.resolve()]
+        self.args += [
+            "-m",
+            m,
+            "-n",
+            n,
+            "-p",
+            str(p),
+            "-f",
+            f,
+            "-s",
+            s,
+            "-t",
+            t,
+            "-w",
+            w.resolve(),
+        ]
         self._call()

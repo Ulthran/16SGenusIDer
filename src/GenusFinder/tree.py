@@ -5,8 +5,8 @@ import subprocess
 from ete3 import Tree
 from pathlib import Path
 
-#from train import learn_curve, probability_for
-#from Aligner import MuscleAligner
+# from train import learn_curve, probability_for
+# from Aligner import MuscleAligner
 
 
 def insert_on_LTP_tree(seq: str) -> Tree:
