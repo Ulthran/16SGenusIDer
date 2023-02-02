@@ -1,43 +1,92 @@
 import eutils
+import logging
 import os
 import requests
+import shutil
 import subprocess
+from pathlib import Path
 from tqdm import tqdm
+from urllib.request import urlopen
 from xml.etree import ElementTree as ET
 
-# https://stackoverflow.com/questions/434287/how-to-iterate-over-a-list-in-chunks
-def chunker(seq, size):
-    return (seq[pos : pos + size] for pos in range(0, len(seq), size))
+LTP_VERSION = "06_2022"
+LTP_URL = f"https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/"
 
 
-# Creates db with eutils
-def create_db(api_key: str):
-    if os.path.isfile("16S.db"):
-        print("Existing 16S.db file found, skipping download...")
-        return None
+class DB():
+    """
+    Controller for all of GenusFinder's database files
+    Maintains a 16S db made from an NCBI eutils query and mulitiple LTP files
+    """
+    def __init__(self, fp: Path, esearch_api_key: str) -> None:
+        self.root_fp = fp
+        self.key = esearch_api_key
 
-    search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=33175%5BBioProject%5D%20OR%2033317%5BBioProject%5D&retmax=25000"
-    search_response = requests.get(search_url)
-    search_tree = ET.fromstring(search_response.content)
+        self._16S_db = self.root_fp / "16S.db"
+        self.LTP_aligned_fp = self.root_fp / f"LTP_{LTP_VERSION}_aligned.fasta"
+        self.LTP_blastdb_fp = self.root_fp / f"LTP_{LTP_VERSION}_blastdb.fasta"
+        self.LTP_tree_fp = self.root_fp / f"tree_LTP_all_{LTP_VERSION}.ntree"
+        self.LTP_csv_fp = self.root_fp / f"LTP_{LTP_VERSION}.csv"
+    
+    def get_16S_db(self) -> Path:
+        if not self._16S_db.exists():
+            logging.info(f"Creating {self._16S_db}...")
+            self._create_16S_db()
+        
+        return self._16S_db
+    
 
-    ids = list()
-    for id in search_tree[3]:
-        ids.append(id.text)
+    def get_LTP_aligned(self) -> Path:
+        return self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
+    
 
-    ec = eutils.Client(api_key=api_key)
+    def get_LTP_blastdb(self) -> Path:
+        return self._get_LTP(self.LTP_blastdb_fp, self.LTP_blastdb_fp.name)
 
-    with open("16S.db", "w") as db, tqdm(total=round(len(ids) / 250)) as pbar:
-        for group in chunker(ids, 250):
-            pbar.update(1)
-            egs = ec.efetch(db="nuccore", id=",".join(group))
-            for seq in egs:
-                db.write(f">{str(seq)[6:-1]} {seq.organism}\n")
-                db.write(f"{seq.sequence}\n")
 
-    try:
-        os.remove("esearch.fcgi")
-    except OSError:
-        pass
+    def get_LTP_tree(self) -> Path:
+        return self._get_LTP(self.LTP_tree_fp, self.LTP_tree_fp.name)
+    
+
+    def get_LTP_csv(self) -> Path:
+        return self._get_LTP(self.LTP_csv_fp, self.LTP_csv_fp.name)
+    
+
+    def _get_LTP(self, fp: Path, name: str) -> Path:
+        if not fp.exists():
+            url = self.url_for(name)
+            logging.info(f"Fetching {url}...")
+            with urlopen(url) as resp, open(fp, "wb") as f:
+                shutil.copyfileobj(resp, f)
+
+        return fp
+
+
+    def _create_16S_db(self):
+        def chunker(seq, size):
+            return (seq[pos : pos + size] for pos in range(0, len(seq), size))
+        
+        search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=33175%5BBioProject%5D%20OR%2033317%5BBioProject%5D&retmax=25000"
+        search_response = requests.get(search_url)
+        search_tree = ET.fromstring(search_response.content)
+
+        ids = list()
+        for id in search_tree[3]:
+            ids.append(id.text)
+
+        ec = eutils.Client(api_key=self.key)
+
+        with open(self._16S_db, "w") as db, tqdm(total=round(len(ids) / 250)) as pbar:
+            for group in chunker(ids, 250):
+                pbar.update(1)
+                egs = ec.efetch(db="nuccore", id=",".join(group))
+                for seq in egs:
+                    db.write(f">{str(seq)[6:-1]} {seq.organism}\n")
+                    db.write(f"{seq.sequence}\n")
+
+    @staticmethod
+    def url_for(name: str) -> str:
+        return f"{LTP_URL}{name}"
 
 
 # Finds similar sequences to the one given with vsearch
