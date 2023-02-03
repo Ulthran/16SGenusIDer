@@ -29,7 +29,13 @@ pip install .
 ## Running
 
 ```
-idgenus ATCGATCGATCGATCG...GCTACTATACGA
+idgenus --seq ATCGATCGATCGATCG...GCTACTATACGA
+```
+
+Using an NCBI API key will speed up the process of creating the 16S database, you can get one for free by following the directions [here](https://ncbiinsights.ncbi.nlm.nih.gov/2017/11/02/new-api-keys-for-the-e-utilities/).
+
+```
+idgenus --seq ATCGATCGATCGATCG...GCTACTATACGA --ncbi_api_key XXXXXXXXXXXXXXXXXXXXX
 ```
 
 ## Steps

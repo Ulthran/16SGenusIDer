@@ -2,10 +2,10 @@ import argparse
 import logging
 import os
 
-from GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder
-from GenusFinder.DB import DB
-from GenusFinder.OutputDir import OutputDir
-from GenusFinder.Trainer import Trainer
+from .CLI import MuscleAligner, RAxMLTreeBuilder
+from .DB import DB
+from .OutputDir import OutputDir
+from .Trainer import Trainer
 
 
 def main(argv=None):

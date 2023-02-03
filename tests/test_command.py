@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import pytest
 
-from GenusFinder.command import main
+from src.GenusFinder.command import main
 
 
 @pytest.fixture
