@@ -5,6 +5,7 @@ import tempfile
 from src.GenusFinder.DB import DB
 from pathlib import Path
 
+
 @pytest.fixture
 def db_fixture():
     temp_dir = tempfile.mkdtemp()
@@ -12,7 +13,10 @@ def db_fixture():
     yield DB(temp_dir, api_key), Path(temp_dir)
     shutil.rmtree(temp_dir)
 
+
 def test_get_16S_db(db_fixture):
     db, root_fp = db_fixture
+    with open(db._16S_db, "w") as f:
+        f.write(" ")
     assert db.get_16S_db().exists()
     assert db.get_16S_db().stat().st_size > 0
