@@ -2,7 +2,7 @@ import os
 import pytest
 import shutil
 import tempfile
-from .DB import DB
+from GenusFinder.DB import DB
 from pathlib import Path
 
 @pytest.fixture
