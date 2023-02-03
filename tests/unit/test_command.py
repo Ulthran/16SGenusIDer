@@ -22,6 +22,6 @@ def temp_dir():
 def test_seq_id(temp_dir):
     temp_dir, db_fp = temp_dir
 
-    #main(["--seq", "acgtacgg", "--output", temp_dir])
+    # main(["--seq", "acgtacgg", "--output", temp_dir])
 
     assert 1 == 1
