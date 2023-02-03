@@ -37,5 +37,7 @@ jobs:
         python -m pip install pytest
         python -m pip install .
     - name: Test with pytest
+      env:
+        NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
       run: |
         pytest -vvl tests/

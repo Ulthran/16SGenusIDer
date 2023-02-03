@@ -9,25 +9,27 @@ from tqdm import tqdm
 from urllib.request import urlopen
 from xml.etree import ElementTree as ET
 
-LTP_VERSION = "06_2022"
-LTP_URL = f"https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/"
-
 
 class DB:
     """
-    Controller for all of GenusFinder's database files
+    Controller for all of GenusFinder's database files\n
     Maintains a 16S db made from an NCBI eutils query and mulitiple LTP files
     """
 
     def __init__(self, fp: Path, esearch_api_key: str) -> None:
         self.root_fp = Path(fp)
+        os.makedirs(self.root_fp, exist_ok=True)
+
         self.key = esearch_api_key
 
+        self.LTP_VERSION = "06_2022"
+        self.LTP_URL = f"https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/"
+
         self._16S_db = self.root_fp / "16S.db"
-        self.LTP_aligned_fp = self.root_fp / f"LTP_{LTP_VERSION}_aligned.fasta"
-        self.LTP_blastdb_fp = self.root_fp / f"LTP_{LTP_VERSION}_blastdb.fasta"
-        self.LTP_tree_fp = self.root_fp / f"tree_LTP_all_{LTP_VERSION}.ntree"
-        self.LTP_csv_fp = self.root_fp / f"LTP_{LTP_VERSION}.csv"
+        self.LTP_aligned_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_aligned.fasta"
+        self.LTP_blastdb_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_blastdb.fasta"
+        self.LTP_tree_fp = self.root_fp / f"tree_LTP_all_{self.LTP_VERSION}.ntree"
+        self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
 
     def get_16S_db(self) -> Path:
         if not self._16S_db.exists():
@@ -83,9 +85,8 @@ class DB:
                     db.write(f">{str(seq)[6:-1]} {seq.organism}\n")
                     db.write(f"{seq.sequence}\n")
 
-    @staticmethod
-    def url_for(name: str) -> str:
-        return f"{LTP_URL}{name}"
+    def url_for(self, name: str) -> str:
+        return f"{self.LTP_URL}{name}"
 
 
 # Finds similar sequences to the one given with vsearch
