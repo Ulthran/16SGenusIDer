@@ -9,7 +9,7 @@ setuptools.setup(
     url="https://github.com/PennChopMicrobiomeProgram",
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
-    pythonpath = [".", "src"],
+    pythonpath=[".", "src"],
     python_requires=">=3.6",
     entry_points={
         "console_scripts": [
