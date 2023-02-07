@@ -17,6 +17,7 @@ def main(argv=None):
     p.add_argument(
         "--ncbi_api_key",
         help="your NCBI API key for making more esearch requests per second",
+        default="",
     )
     p.add_argument(
         "--output", help="the directory in which to put all output", default="output/"
@@ -40,7 +41,7 @@ def main(argv=None):
     logging.basicConfig()
     logging.getLogger().setLevel(args.log_level)
 
-    out = OutputDir(args.output, args.overwrite, args.seq)
+    out = OutputDir(args.output, args.seq, args.overwrite)
 
     db = DB(args.db, args.ncbi_api_key)
 

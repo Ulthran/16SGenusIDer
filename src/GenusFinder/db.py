@@ -28,7 +28,7 @@ class DB:
         self._16S_db = self.root_fp / "16S.db"
         self.LTP_aligned_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_aligned.fasta"
         self.LTP_blastdb_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_blastdb.fasta"
-        self.LTP_tree_fp = self.root_fp / f"tree_LTP_all_{self.LTP_VERSION}.ntree"
+        self.LTP_tree_fp = self.root_fp / f"Tree_LTP_all_{self.LTP_VERSION}.ntree"
         self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
 
     def get_16S_db(self) -> Path:
