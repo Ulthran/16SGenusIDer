@@ -25,7 +25,7 @@ class OutputDir:
             # Assuming seq is the literal sequence, not a file
             self.query_fp = self.root_fp / "query"
             self.write_query(seq)
-        
+
         self.probs_fp = self.root_fp / "probabilities.tsv"
 
     def get_combined_alignment(self) -> Path:
