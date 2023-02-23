@@ -34,11 +34,10 @@ jobs:
       run: |
         conda env update --file genusfinder_env.yaml
         python -m pip install --upgrade pip
-        python -m pip install pytest==6.2.4
-        python -m pip install .
+        python -m pip install pytest
+        python -m pip install -e .
     - name: Test with pytest
       env:
         NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
       run: |
-        pytest --version
         pytest -vvl tests/
