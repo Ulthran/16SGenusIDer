@@ -40,4 +40,5 @@ jobs:
       env:
         NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
       run: |
+        pytest --version
         pytest -vvl tests/
