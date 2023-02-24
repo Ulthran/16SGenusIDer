@@ -3,7 +3,7 @@ import pytest
 import shutil
 import tempfile
 from .. import INC
-from src.GenusFinder.Filename import DB
+from src.GenusFinder.Filename import Filename
 from pathlib import Path
 
 
