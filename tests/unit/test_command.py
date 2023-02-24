@@ -2,7 +2,7 @@ import os
 import shutil
 import tempfile
 import pytest
-
+from .. import INC
 from src.GenusFinder.command import main
 
 

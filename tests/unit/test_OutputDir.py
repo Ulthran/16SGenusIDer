@@ -2,6 +2,7 @@ import os
 import pytest
 import shutil
 import tempfile
+from .. import INC
 from src.GenusFinder.OutputDir import OutputDir
 from pathlib import Path
 
