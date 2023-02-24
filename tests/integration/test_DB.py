@@ -3,14 +3,14 @@ import pytest
 import shutil
 import tempfile
 from .. import INC
-from src.GenusFinder.Filename import Filename
+from src.GenusFinder.DBDir import DBDir
 
 
 @pytest.fixture
 def db_fixture():
     temp_dir = tempfile.mkdtemp()
     api_key = os.environ.get("NCBI_API_KEY", "")
-    yield DB(temp_dir, api_key)
+    yield DBDir(temp_dir, api_key)
     shutil.rmtree(temp_dir)
 
 

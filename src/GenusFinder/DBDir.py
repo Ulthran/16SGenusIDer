@@ -9,7 +9,7 @@ from urllib.request import urlopen
 from xml.etree import ElementTree as ET
 
 
-class Filename:
+class DBDir:
     """
     Controller for all of GenusFinder's database files\n
     Maintains a 16S db made from an NCBI eutils query and mulitiple LTP files

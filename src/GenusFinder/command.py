@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from src.GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder
-from src.GenusFinder.Filename import Filename
+from src.GenusFinder.DBDir import DBDir
 from src.GenusFinder.OutputDir import OutputDir
 from src.GenusFinder.Trainer import Trainer
 
@@ -42,7 +42,7 @@ def main(argv=None):
 
     out = OutputDir(args.output, args.seq, args.overwrite)
 
-    db = DB(args.db, args.ncbi_api_key)
+    db = DBDir(args.db, args.ncbi_api_key)
 
     aligner = MuscleAligner()
     aligner.call(
