@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from src.GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder
-from src.GenusFinder.DB import DB
+from src.GenusFinder.DBfile import DB
 from src.GenusFinder.OutputDir import OutputDir
 from src.GenusFinder.Trainer import Trainer
 
