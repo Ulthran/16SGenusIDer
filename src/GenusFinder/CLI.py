@@ -8,6 +8,7 @@ class CLI:
     """
     A template wrapper class for CLI interactions
     """
+
     def __init__(self) -> None:
         self.args = []
 

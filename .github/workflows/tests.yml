@@ -36,8 +36,14 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install pytest
         python -m pip install .
-    - name: Test with pytest
+    - name: Unit tests
       env:
         NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
       run: |
-        pytest -vvl tests/
+        pytest -vvl tests/unit/
+    - name: Other tests
+      env:
+        NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      run: |
+        pytest -vvl tests/e2e/
+        pytest -vvl tests/integration/
