@@ -3,6 +3,7 @@
 <!-- Badges start -->
 [![Tests](https://github.com/Ulthran/GenusFinder/actions/workflows/tests.yml/badge.svg)](https://github.com/Ulthran/GenusFinder/actions/workflows/tests.yml)
 [![Super-Linter](https://github.com/Ulthran/GenusFinder/actions/workflows/linter.yml/badge.svg)](https://github.com/Ulthran/GenusFinder/actions/workflows/linter.yml)
+[![codecov](https://codecov.io/gh/Ulthran/GenusFinder/branch/main/graph/badge.svg?token=LYBCXLGV6N)](https://codecov.io/gh/Ulthran/GenusFinder)
 [![Upload Python Package](https://github.com/Ulthran/GenusFinder/actions/workflows/python-publish.yml/badge.svg)](https://github.com/Ulthran/GenusFinder/actions/workflows/python-publish.yml)
 <!-- Badges end -->
 
