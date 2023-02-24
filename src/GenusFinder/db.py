@@ -3,7 +3,7 @@ import logging
 import os
 import requests
 import shutil
-import subprocess
+import subprocess as sp
 from pathlib import Path
 from tqdm import tqdm
 from urllib.request import urlopen
@@ -99,7 +99,7 @@ def find_similar(seq: str, id: str) -> list:
         f.write(f">UNKNOWN\n")
         f.write(f"{seq}\n")
 
-    subprocess.run(
+    sp.run(
         [
             "vsearch",
             "--usearch_global",
