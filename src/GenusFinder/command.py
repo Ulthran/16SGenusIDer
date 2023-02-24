@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from src.GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder
+from src.GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder, VsearchSearcher
 from src.GenusFinder.DBDir import DBDir
 from src.GenusFinder.OutputDir import OutputDir
 from src.GenusFinder.Trainer import Trainer
@@ -30,6 +30,11 @@ def main(argv=None):
         action="store_true",
     )
     p.add_argument(
+        "--subtree_only",
+        help="only use the subtree method, not more computationally intensive full tree alignment",
+        action="store_false",
+    )
+    p.add_argument(
         "--log_level",
         type=int,
         help="Sets the log level, default is info, 10 for debug (Default: 20)",
@@ -44,24 +49,81 @@ def main(argv=None):
 
     db = DBDir(args.db, args.ncbi_api_key)
 
-    aligner = MuscleAligner()
-    aligner.call(
-        True, db.get_LTP_aligned(), out.get_query(), out.get_combined_alignment()
+    ### Subtree alignment method ###
+
+    searcher = VsearchSearcher()
+    searcher.call(
+        db.get_type_species(),
+        out.get_query(),
+        0.9,
+        out.get_nearest_seqs()
     )
+
+    aligner = MuscleAligner()
+    aligner.call_simple(out.get_nearest_seqs(), out.get_nearest_seqs_aligned())
 
     tree_builder = RAxMLTreeBuilder()
+    # Create 100 bootstrap trees
     tree_builder.call(
+        392781,
+        None,
+        100,
         "GTRCAT",
-        "combined",
+        "genus1",
         10000,
-        "y",
-        out.get_combined_alignment(),
-        db.get_LTP_tree(),
+        out.get_nearest_seqs_aligned(),
+        None,
         out.root_fp,
+        None,
+    )
+    # Create the base tree to use the bootstrapping trees with
+    tree_builder.call(
+        None,
+        None,
+        None,
+        "GTRCAT",
+        "genus2",
+        10000,
+        out.get_nearest_seqs_aligned(),
+        None,
+        out.root_fp,
+        None,
+    )
+    # Create bootstrapped tree
+    tree_builder.call(
+        None,
+        "b",
+        None,
+        "PROTGAMMAILG",
+        "final",
+        None,
+        None,
+        out.get_base_tree(),
+        out.root_fp,
+        out.get_bootstraps(),
     )
 
-    trainer = Trainer(out.get_combined_tree())
-    out.write_probs(trainer.train(db.get_LTP_tree()))
+    
+
+    ### Full tree alignment method ###
+
+    if not args.subtree_only:
+        aligner.call_profile(
+            True, db.get_LTP_aligned(), out.get_query(), out.get_combined_alignment()
+        )
+
+        tree_builder.call(
+            None, "y", None,
+            "GTRCAT",
+            "combined",
+            10000,
+            out.get_combined_alignment(),
+            db.get_LTP_tree(),
+            out.root_fp, None,
+        )
+
+        trainer = Trainer(out.get_combined_tree())
+        out.write_probs(trainer.train(db.get_LTP_tree()))
 
     # identify_genus(
     #    build_tree(find_similar(args.seq, args.id), args.seq, args.keep_output),

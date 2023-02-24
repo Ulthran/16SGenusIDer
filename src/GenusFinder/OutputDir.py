@@ -26,13 +26,38 @@ class OutputDir:
             self.query_fp = self.root_fp / "query"
             self.write_query(seq)
 
+        self.bootstraps_fp = self.root_fp / "RAxML_bestTree.genus1"
+        self.base_tree_fp = self.root_fp / "RAxML_bestTree.genus2"
+        self.bootstrapped_tree_fp = self.root_fp / "RAxML_bipartitions.final"
+
+        self.combined_alignment_fp = self.root_fp / "combined_alignment.fasta"
+        self.combined_tree_fp = self.root_fp / "RAxML_bestTree.combined"
+
+        self.nearest_seqs_fp = self.root_fp / "nearest_seqs.fasta"
+        self.nearest_seqs_aligned_fp = self.root_fp / "nearest_seqs_aligned.fasta"
+
         self.probs_fp = self.root_fp / "probabilities.tsv"
 
+    def get_bootstraps(self) -> Path:
+        return self.bootstraps_fp
+
+    def get_base_tree(self) -> Path:
+        return self.base_tree_fp
+
+    def get_bootstrapped_tree(self) -> Path:
+        return self.bootstrapped_tree_fp
+
     def get_combined_alignment(self) -> Path:
-        return self.root_fp / "combined_alignment.fasta"
+        return self.combined_alignment_fp
 
     def get_combined_tree(self) -> Path:
-        return self.root_fp / "RAxML_bestTree.combined"
+        return self.combined_tree_fp
+    
+    def get_nearest_seqs(self) -> Path:
+        return self.nearest_seqs_fp
+
+    def get_nearest_seqs_aligned(self) -> Path:
+        return self.nearest_seqs_aligned_fp
 
     def get_query(self) -> Path:
         return self.query_fp
