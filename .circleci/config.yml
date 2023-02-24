@@ -17,8 +17,9 @@ jobs:
             python -m pip install --upgrade pip
             python -m pip install pytest
             python -m pip install .
-            pytest -vvl tests/
         
       - run:
           name: run tests
-          command: echo "Poo"
+          command: |
+            PYTHONPATH=$(pwd)
+            pytest -vvl tests/
