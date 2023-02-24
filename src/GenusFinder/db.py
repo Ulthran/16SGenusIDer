@@ -3,7 +3,6 @@ import logging
 import os
 import requests
 import shutil
-import subprocess as sp
 from pathlib import Path
 from tqdm import tqdm
 from urllib.request import urlopen

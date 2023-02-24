@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 
 from src.GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder
 from src.GenusFinder.DB import DB
