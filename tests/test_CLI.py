@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 print(sys.path)
-sys.path.append(Path(os.path.dirname(__file__)).parent)
+sys.path.insert(0, str(Path(os.path.dirname(__file__)).parent))
 print(sys.path)
 from src.GenusFinder.CLI import CLI, MuscleAligner, RAxMLTreeBuilder
 
