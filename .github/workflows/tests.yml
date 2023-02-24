@@ -42,6 +42,7 @@ jobs:
       run: |
         pytest -vvl tests/unit/
     - name: Other tests
+      if: matrix.python-version == "3.10"
       env:
         NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
       run: |
