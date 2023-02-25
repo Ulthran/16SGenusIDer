@@ -62,10 +62,11 @@ class OutputDir:
     def get_query(self) -> Path:
         return self.query_fp
 
-    def write_probs(self, probs: dict):
+    def write_probs(self, probs: dict, header: str = ""):
         with open(self.probs_fp, "w") as f:
+            f.write(f"{header}\n")
             for s, p in probs.items():
-                f.write(f"{s.split(' ')[0]}\t{p}\n")
+                f.write(f"{s.split(' ')[0]}\t{round(p * 100, 5)}\n")
 
     def write_query(self, query: str):
         with open(self.query_fp, "w") as f:

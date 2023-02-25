@@ -24,11 +24,14 @@ class DBDir:
         self.LTP_VERSION = "06_2022"
         self.LTP_URL = f"https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/"
 
+        self.TYPE_SPECIES_URL = ""
+
         self._16S_db = self.root_fp / "16S.db"
         self.LTP_aligned_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_aligned.fasta"
         self.LTP_blastdb_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_blastdb.fasta"
         self.LTP_tree_fp = self.root_fp / f"LTP_all_{self.LTP_VERSION}.ntree"
         self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
+        self.type_species_fp = self.root_fp / "type_species.fasta"
 
     def get_16S_db(self) -> Path:
         if not self._16S_db.exists():
@@ -50,6 +53,16 @@ class DBDir:
 
     def get_LTP_csv(self) -> Path:
         return self._get_LTP(self.LTP_csv_fp, self.LTP_csv_fp.name)
+    
+    def get_type_species(self) -> Path:
+        if not self.type_species_fp.exists():
+            logging.info(f"Fetching {self.TYPE_SPECIES_URL}...")
+            with urlopen(self.TYPE_SPECIES_URL) as resp, open(self.type_species_fp, "wb") as f:
+                shutil.copyfileobj(resp, f)
+        else:
+            logging.info(f"Found {self.type_species_fp}, skipping download...")
+        
+        return self.type_species_fp
 
     def _get_LTP(self, fp: Path, name: str) -> Path:
         if not fp.exists():

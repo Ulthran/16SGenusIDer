@@ -4,7 +4,7 @@ import logging
 from src.GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder, VsearchSearcher
 from src.GenusFinder.DBDir import DBDir
 from src.GenusFinder.OutputDir import OutputDir
-from src.GenusFinder.Trainer import Trainer
+from src.GenusFinder.Algorithms import Algorithms
 
 
 def main(argv=None):
@@ -103,7 +103,9 @@ def main(argv=None):
         out.get_bootstraps(),
     )
 
-    
+    algorithms = Algorithms(out.get_bootstrapped_tree(), db.get_type_species(), out.get_query())
+    out.write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities")
+    out.write_probs(algorithms.bootstrap_probs(), "Bootstrap-based subtree probabilities")
 
     ### Full tree alignment method ###
 
@@ -122,10 +124,4 @@ def main(argv=None):
             out.root_fp, None,
         )
 
-        trainer = Trainer(out.get_combined_tree())
-        out.write_probs(trainer.train(db.get_LTP_tree()))
-
-    # identify_genus(
-    #    build_tree(find_similar(args.seq, args.id), args.seq, args.keep_output),
-    #    args.seq,
-    # )
+        out.write_probs(algorithms.train(db.get_LTP_tree()), "Full tree alignment probabilities")
