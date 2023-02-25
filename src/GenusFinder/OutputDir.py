@@ -63,7 +63,7 @@ class OutputDir:
         return self.query_fp
 
     def write_probs(self, probs: dict, header: str = ""):
-        with open(self.probs_fp, "w") as f:
+        with open(self.probs_fp, "a+") as f:
             f.write(f"{header}\n")
             for s, p in probs.items():
                 f.write(f"{s.split(' ')[0]}\t{round(p * 100, 5)}\n")
