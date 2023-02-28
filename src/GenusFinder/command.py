@@ -1,10 +1,10 @@
 import argparse
 import logging
 
-from src.GenusFinder.CLI import MuscleAligner, RAxMLTreeBuilder, VsearchSearcher
-from src.GenusFinder.DBDir import DBDir
-from src.GenusFinder.OutputDir import OutputDir
-from src.GenusFinder.Algorithms import Algorithms
+from .CLI import MuscleAligner, RAxMLTreeBuilder, VsearchSearcher
+from .DBDir import DBDir
+from .OutputDir import OutputDir
+from .Algorithms import Algorithms
 
 
 def main(argv=None):

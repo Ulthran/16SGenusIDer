@@ -1,8 +1,10 @@
 import eutils
 import logging
 import os
+import re
 import requests
 import shutil
+from io import StringIO, TextIOWrapper
 from pathlib import Path
 from tqdm import tqdm
 from urllib.request import urlopen
@@ -23,8 +25,6 @@ class DBDir:
 
         self.LTP_VERSION = "06_2022"
         self.LTP_URL = f"https://imedea.uib-csic.es/mmg/ltp/wp-content/uploads/ltp/"
-
-        self.TYPE_SPECIES_URL = ""
 
         self._16S_db = self.root_fp / "16S.db"
         self.LTP_aligned_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_aligned.fasta"
@@ -56,16 +56,30 @@ class DBDir:
 
     def get_type_species(self) -> Path:
         if not self.type_species_fp.exists():
-            # logging.info(f"Fetching {self.TYPE_SPECIES_URL}...")
-            # with urlopen(self.TYPE_SPECIES_URL) as resp, open(self.type_species_fp, "wb") as f:
-            #    shutil.copyfileobj(resp, f)
-            shutil.copyfile(
-                "/mnt/d/Penn/GenusFinder/db/type_species.fasta", self.type_species_fp
-            )
+            logging.info(f"Creating {self.type_species_fp}...")
+            self._generate_type_species()
         else:
-            logging.info(f"Found {self.type_species_fp}, skipping download...")
+            logging.info(f"Found {self.type_species_fp}, skipping creation...")
 
         return self.type_species_fp
+    
+    def _generate_type_species(self):
+        accession_cts = {}
+        with open(self.get_LTP_blastdb()) as f_in:
+            with open(self.type_species_fp, "w") as f_out:
+                for desc, seq in self._parse_fasta(f_in):
+                    accession, species_name = self._parse_desc(desc)
+                    if not accession or not species_name:
+                        continue
+                    # Some accessions refer to genomes with more than one 16S gene
+                    # So accessions can be legitiamtely repeated with distinct gene sequences
+                    accession_times_previously_seen = accession_cts[accession]
+                    accession_cts[accession] += 1
+                    if accession_times_previously_seen > 0:
+                        accession = "{0}_repeat{1}".format(
+                            accession, accession_times_previously_seen
+                        )
+                    f_out.write(">{0}\t{1}\n{2}\n".format(accession, species_name, seq))
 
     def _get_LTP(self, fp: Path, name: str) -> Path:
         if not fp.exists():
@@ -77,6 +91,9 @@ class DBDir:
             logging.info(f"Found {fp}, skipping download...")
 
         return fp
+
+    def url_for(self, name: str) -> str:
+        return f"{self.LTP_URL}{name}"
 
     def _create_16S_db(self):
         def chunker(seq, size):
@@ -99,9 +116,39 @@ class DBDir:
                 for seq in egs:
                     db.write(f">{str(seq)[6:-1]} {seq.organism}\n")
                     db.write(f"{seq.sequence}\n")
-
-    def url_for(self, name: str) -> str:
-        return f"{self.LTP_URL}{name}"
+    
+    @staticmethod
+    def parse_fasta(f: TextIOWrapper, trim_desc = False) -> dict:
+        f = iter(f)
+        try:
+            desc = next(f).strip()[1:]
+            if trim_desc:
+                desc = desc.split()[0]
+        except StopIteration:
+            return
+        seq = StringIO()
+        for line in f:
+            line = line.strip()
+            if line.startswith(">"):
+                yield desc, seq.getvalue()
+                desc = line[1:]
+                if trim_desc:
+                    desc = desc.split()[0]
+                seq = StringIO()
+            else:
+                seq.write(line.replace(" ", "").replace("U", "T"))
+        yield desc, seq.getvalue()
+    
+    @staticmethod
+    def _parse_desc(desc: str) -> tuple:
+        try:
+            accession = re.findall(r"\[accession=(.*?)\]", desc)[0]
+            species_name = re.findall(r"\[organism=(.*?)\]", desc)[0]
+        except IndexError as e:
+            logging.error(f"Couldn't find accession and/or organism identifier in {desc}")
+            logging.error(f"Skipping this sequence...")
+            return None, None
+        return accession, species_name
 
 
 # Finds similar sequences to the one given with vsearch
