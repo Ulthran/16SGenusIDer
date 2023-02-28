@@ -52,12 +52,7 @@ def main(argv=None):
     ### Subtree alignment method ###
 
     searcher = VsearchSearcher()
-    searcher.call(
-        db.get_type_species(),
-        out.get_query(),
-        0.9,
-        out.get_nearest_seqs()
-    )
+    searcher.call(db.get_type_species(), out.get_query(), 0.9, out.get_nearest_seqs())
 
     aligner = MuscleAligner()
     aligner.call_simple(out.get_nearest_seqs(), out.get_nearest_seqs_aligned())
@@ -103,9 +98,13 @@ def main(argv=None):
         out.get_bootstraps(),
     )
 
-    algorithms = Algorithms(out.get_bootstrapped_tree(), db.get_type_species(), out.get_query())
+    algorithms = Algorithms(
+        out.get_bootstrapped_tree(), db.get_type_species(), out.get_query()
+    )
     out.write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities")
-    out.write_probs(algorithms.bootstrap_probs(), "Bootstrap-based subtree probabilities")
+    out.write_probs(
+        algorithms.bootstrap_probs(), "Bootstrap-based subtree probabilities"
+    )
 
     ### Full tree alignment method ###
 
@@ -115,13 +114,18 @@ def main(argv=None):
         )
 
         tree_builder.call(
-            None, "y", None,
+            None,
+            "y",
+            None,
             "GTRCAT",
             "combined",
             10000,
             out.get_combined_alignment(),
             db.get_LTP_tree(),
-            out.root_fp, None,
+            out.root_fp,
+            None,
         )
 
-        out.write_probs(algorithms.train(db.get_LTP_tree()), "Full tree alignment probabilities")
+        out.write_probs(
+            algorithms.train(db.get_LTP_tree()), "Full tree alignment probabilities"
+        )

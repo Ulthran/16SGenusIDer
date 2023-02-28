@@ -57,7 +57,7 @@ class OutputDir:
 
     def get_combined_tree(self) -> Path:
         return self.combined_tree_fp
-    
+
     def get_nearest_seqs(self) -> Path:
         return self.nearest_seqs_fp
 

@@ -53,16 +53,18 @@ class DBDir:
 
     def get_LTP_csv(self) -> Path:
         return self._get_LTP(self.LTP_csv_fp, self.LTP_csv_fp.name)
-    
+
     def get_type_species(self) -> Path:
         if not self.type_species_fp.exists():
-            #logging.info(f"Fetching {self.TYPE_SPECIES_URL}...")
-            #with urlopen(self.TYPE_SPECIES_URL) as resp, open(self.type_species_fp, "wb") as f:
+            # logging.info(f"Fetching {self.TYPE_SPECIES_URL}...")
+            # with urlopen(self.TYPE_SPECIES_URL) as resp, open(self.type_species_fp, "wb") as f:
             #    shutil.copyfileobj(resp, f)
-            shutil.copyfile("/mnt/d/Penn/GenusFinder/db/type_species.fasta", self.type_species_fp)
+            shutil.copyfile(
+                "/mnt/d/Penn/GenusFinder/db/type_species.fasta", self.type_species_fp
+            )
         else:
             logging.info(f"Found {self.type_species_fp}, skipping download...")
-        
+
         return self.type_species_fp
 
     def _get_LTP(self, fp: Path, name: str) -> Path:

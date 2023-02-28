@@ -27,17 +27,13 @@ class MuscleAligner(CLI):
     """
     v3
     """
+
     def __init__(self):
         super().__init__()
         self.args = ["muscle"]
-    
+
     def call_simple(self, align: Path, output: Path):
-        self.args += [
-            "-in",
-            str(align),
-            "-out",
-            str(output)
-        ]
+        self.args += ["-in", str(align), "-out", str(output)]
         self._call()
 
     def call_profile(self, profile: bool, in1: Path, in2: Path, out: Path):
@@ -53,7 +49,19 @@ class RAxMLTreeBuilder(CLI):
         super().__init__()
         self.args = ["raxmlHPC"]
 
-    def call(self, b: int, f: str, N: int, m: str, n: str, p: int, s: Path, t: Path, w: Path, z: Path):
+    def call(
+        self,
+        b: int,
+        f: str,
+        N: int,
+        m: str,
+        n: str,
+        p: int,
+        s: Path,
+        t: Path,
+        w: Path,
+        z: Path,
+    ):
         self.args += ["-b", str(b)] if b else None
         self.args += ["-f", f] if f else None
         self.args += ["-N", str(N)] if N else None
@@ -72,7 +80,7 @@ class VsearchSearcher(CLI):
     def __init__(self) -> None:
         super().__init__()
         self.args = ["vsearch"]
-    
+
     def call(self, u: Path, db: Path, id: float, fp: Path):
         self.args += [
             "--usearch_global",

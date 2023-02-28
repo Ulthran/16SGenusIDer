@@ -15,12 +15,15 @@ class Algorithms:
     2) bootstrap_probs which calculates subtree bootstrap-based probabilities
     3) train which calculates full tree LinReg-based probabilities
     """
-    def __init__(self, tree_fp: Path, type_species_fp: Path, query: Path = None) -> None:
+
+    def __init__(
+        self, tree_fp: Path, type_species_fp: Path, query: Path = None
+    ) -> None:
         with open(tree_fp) as f:
             self.t = Tree(f.readline())
 
         self.type_species_fp = type_species_fp
-        self.lookup = {} # Store commonly accessed type species
+        self.lookup = {}  # Store commonly accessed type species
 
         with open(query) as f:
             self.query = f.readline().strip()
@@ -34,17 +37,20 @@ class Algorithms:
         dist_prob = {}
         for n in self.t.traverse():
             logging.debug(f"Node: {n.name}")
-            if n.name != "" and n.name != "UNKNOWN": # Nodes with "" for a name are not leaves
+            if (
+                n.name != "" and n.name != "UNKNOWN"
+            ):  # Nodes with "" for a name are not leaves
                 d = self.t.get_distance("UNKNOWN", n.name)
                 logging.debug(f"Distance from unknown: {d}")
                 g = self.get_genus(n.name, self.lookup)
                 self.lookup[n.name] = g
                 dist_prob[g] = dist_prob[g] + (1 / d) if g in dist_prob else (1 / d)
 
-        dist_prob = {k: v / sum(dist_prob.values()) for k, v in dist_prob.items()} # Normalize probabilities
+        dist_prob = {
+            k: v / sum(dist_prob.values()) for k, v in dist_prob.items()
+        }  # Normalize probabilities
         dist_prob = sorted(dist_prob.items(), key=lambda x: -x[1])
         return dist_prob
-
 
     def bootstrap_probs(self) -> dict:
         """
@@ -69,13 +75,15 @@ class Algorithms:
             factor = node.support * remaining_frac
             sub_dict = {}
             for n in node.traverse():
-                if(n.name != "UNKNOWN" and n.name != ""):
+                if n.name != "UNKNOWN" and n.name != "":
                     g = self.get_genus(n.name, self.lookup)
                     sub_dict[g] = sub_dict[g] + 1 if g in sub_dict else 1
 
             sub_dict = {k: v / sum(sub_dict.values()) for k, v in sub_dict.items()}
             for k, v in sub_dict.items():
-                boot_prob[k] = boot_prob[k] + factor * v if k in boot_prob else factor * v
+                boot_prob[k] = (
+                    boot_prob[k] + factor * v if k in boot_prob else factor * v
+                )
             remaining_frac = remaining_frac - (node.support / 100) * remaining_frac
 
             count += 1
@@ -83,10 +91,11 @@ class Algorithms:
                 break
             node = node.up
 
-        boot_prob = {k: v / sum(boot_prob.values()) for k, v in boot_prob.items()} # Normalize probabilities
+        boot_prob = {
+            k: v / sum(boot_prob.values()) for k, v in boot_prob.items()
+        }  # Normalize probabilities
         boot_prob = sorted(boot_prob.items(), key=lambda x: -x[1])
         return boot_prob
-
 
     def train(self, training_tree: Tree, min_neighbors: int = 50) -> dict:
         ts = [
@@ -104,7 +113,7 @@ class Algorithms:
         if lookup:
             if id in lookup:
                 return lookup[id]
-        
+
         with open("db/type_species.fasta") as f:
             for l in f.readlines():
                 if l[0] == ">" and id in l:
