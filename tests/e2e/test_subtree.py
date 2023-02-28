@@ -20,12 +20,12 @@ def test_subtree_method():
         "--ncbi_api_key",
         os.environ.get("NCBI_API_KEY", ""),
         "--output",
-        output_fp,
+        str(output_fp),
         "--db",
-        db_fp,
+        str(db_fp),
         "--subtree_only",
         "--log_level",
-        10
+        "10"
     ])
 
     probs_fp = output_fp / "probabilities.tsv"

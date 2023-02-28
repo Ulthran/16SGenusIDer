@@ -24,23 +24,26 @@ class CLI:
 
 
 class MuscleAligner(CLI):
+    """
+    v3
+    """
     def __init__(self):
         super().__init__()
         self.args = ["muscle"]
     
     def call_simple(self, align: Path, output: Path):
         self.args += [
-            "-align",
-            align,
-            "-output",
-            output
+            "-in",
+            str(align),
+            "-out",
+            str(output)
         ]
         self._call()
 
     def call_profile(self, profile: bool, in1: Path, in2: Path, out: Path):
         if profile:
             self.args.append("-profile")
-        self.args += ["-in1", in1, "-in2", in2, "-out", out]
+        self.args += ["-in1", str(in1), "-in2", str(in2), "-out", str(out)]
 
         self._call()
 
@@ -57,10 +60,10 @@ class RAxMLTreeBuilder(CLI):
         self.args += ["-m", m] if m else None
         self.args += ["-n", n] if n else None
         self.args += ["-p", p] if p else None
-        self.args += ["-s", s] if s else None
-        self.args += ["-t", t] if t else None
-        self.args += ["-w", w.resolve()] if w else None
-        self.args += ["-z", z] if z else None
+        self.args += ["-s", str(s)] if s else None
+        self.args += ["-t", str(t)] if t else None
+        self.args += ["-w", str(w.resolve())] if w else None
+        self.args += ["-z", str(z)] if z else None
 
         self._call()
 
@@ -73,12 +76,12 @@ class VsearchSearcher(CLI):
     def call(self, u: Path, db: Path, id: float, fp: Path):
         self.args += [
             "--usearch_global",
-            u,
+            str(u),
             "--db",
-            db,
+            str(db),
             "--id",
             str(id),
             "--fastapairs",
-            fp,
+            str(fp),
         ]
         self._call()

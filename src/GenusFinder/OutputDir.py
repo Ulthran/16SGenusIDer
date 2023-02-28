@@ -19,11 +19,16 @@ class OutputDir:
 
         os.makedirs(self.root_fp, exist_ok=True)
 
-        if Path(seq).exists():
-            self.query_fp = Path(seq)
-        else:
-            # Assuming seq is the literal sequence, not a file
-            self.query_fp = self.root_fp / "query"
+        try:
+            if Path(seq).exists():
+                self.query_fp = Path(seq)
+            else:
+                # Assuming seq is the literal sequence, not a file
+                self.query_fp = self.root_fp / "query.fasta"
+                self.write_query(seq)
+        except OSError as e:
+            logging.info(f"--seq arg is too long to be a path, interpreting as literal")
+            self.query_fp = self.root_fp / "query.fasta"
             self.write_query(seq)
 
         self.bootstraps_fp = self.root_fp / "RAxML_bestTree.genus1"
@@ -70,4 +75,5 @@ class OutputDir:
 
     def write_query(self, query: str):
         with open(self.query_fp, "w") as f:
-            f.write(query)
+            f.write("> UNKNOWN\n")
+            f.write(f"{query}\n")

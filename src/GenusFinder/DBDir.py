@@ -56,9 +56,10 @@ class DBDir:
     
     def get_type_species(self) -> Path:
         if not self.type_species_fp.exists():
-            logging.info(f"Fetching {self.TYPE_SPECIES_URL}...")
-            with urlopen(self.TYPE_SPECIES_URL) as resp, open(self.type_species_fp, "wb") as f:
-                shutil.copyfileobj(resp, f)
+            #logging.info(f"Fetching {self.TYPE_SPECIES_URL}...")
+            #with urlopen(self.TYPE_SPECIES_URL) as resp, open(self.type_species_fp, "wb") as f:
+            #    shutil.copyfileobj(resp, f)
+            shutil.copyfile("/mnt/d/Penn/GenusFinder/db/type_species.fasta", self.type_species_fp)
         else:
             logging.info(f"Found {self.type_species_fp}, skipping download...")
         
