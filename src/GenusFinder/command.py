@@ -26,7 +26,7 @@ def main(argv=None):
     )
     p.add_argument(
         "--overwrite",
-        help="overwrites any existing files of the same name",
+        help="overwrites any existing files of the same name, otherwise assumes existing files should be used as they are",
         action="store_true",
     )
     p.add_argument(
@@ -52,50 +52,40 @@ def main(argv=None):
     ### Subtree alignment method ###
 
     searcher = VsearchSearcher()
-    searcher.call(db.get_type_species(), out.get_query(), 0.9, out.get_nearest_seqs())
+    if not (args.overwrite or out.get_nearest_seqs().exists()):
+        searcher.call(db.get_type_species(), out.get_query(), 0.9, out.get_nearest_seqs())
 
     aligner = MuscleAligner()
-    aligner.call_simple(out.get_nearest_seqs(), out.get_nearest_seqs_aligned())
+    if not (args.overwrite or out.get_nearest_seqs_aligned().exists()):
+        aligner.call_simple(out.get_nearest_reduced_seqs(), out.get_nearest_seqs_aligned())
 
     tree_builder = RAxMLTreeBuilder()
     # Create 100 bootstrap trees
     tree_builder.call(
-        392781,
-        None,
-        100,
-        "GTRCAT",
-        "genus1",
-        10000,
-        out.get_nearest_seqs_aligned(),
-        None,
-        out.root_fp,
-        None,
+        b=392781,
+        N=100,
+        m="GTRCAT",
+        n="genus1",
+        p=10000,
+        s=out.get_nearest_seqs_aligned(),
+        w=out.root_fp,
     )
     # Create the base tree to use the bootstrapping trees with
     tree_builder.call(
-        None,
-        None,
-        None,
-        "GTRCAT",
-        "genus2",
-        10000,
-        out.get_nearest_seqs_aligned(),
-        None,
-        out.root_fp,
-        None,
+        m="GTRCAT",
+        n="genus2",
+        p=10000,
+        s=out.get_nearest_seqs_aligned(),
+        w=out.root_fp,
     )
     # Create bootstrapped tree
     tree_builder.call(
-        None,
-        "b",
-        None,
-        "PROTGAMMAILG",
-        "final",
-        None,
-        None,
-        out.get_base_tree(),
-        out.root_fp,
-        out.get_bootstraps(),
+        f="b",
+        m="PROTGAMMAILG",
+        n="final",
+        t=out.get_base_tree(),
+        w=out.root_fp,
+        z=out.get_bootstraps(),
     )
 
     algorithms = Algorithms(
@@ -105,6 +95,8 @@ def main(argv=None):
     out.write_probs(
         algorithms.bootstrap_probs(), "Bootstrap-based subtree probabilities"
     )
+
+    logging.info(f"Subtree method finished! Check {out.probs_fp} for results.")
 
     ### Full tree alignment method ###
 
@@ -129,3 +121,5 @@ def main(argv=None):
         out.write_probs(
             algorithms.train(db.get_LTP_tree()), "Full tree alignment probabilities"
         )
+
+    logging.info(f"Full tree method finished! Check {out.probs_fp} for results.")

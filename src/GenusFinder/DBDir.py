@@ -1,3 +1,4 @@
+import collections
 import eutils
 import logging
 import os
@@ -64,7 +65,7 @@ class DBDir:
         return self.type_species_fp
     
     def _generate_type_species(self):
-        accession_cts = {}
+        accession_cts = collections.defaultdict(int)
         with open(self.get_LTP_blastdb()) as f_in:
             with open(self.type_species_fp, "w") as f_out:
                 for desc, seq in self._parse_fasta(f_in):
@@ -118,7 +119,7 @@ class DBDir:
                     db.write(f"{seq.sequence}\n")
     
     @staticmethod
-    def parse_fasta(f: TextIOWrapper, trim_desc = False) -> dict:
+    def _parse_fasta(f: TextIOWrapper, trim_desc = False) -> dict:
         f = iter(f)
         try:
             desc = next(f).strip()[1:]

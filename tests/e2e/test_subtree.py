@@ -35,4 +35,3 @@ def test_subtree_method():
     with open(probs_fp) as f:
         print(f.readlines())
     assert probs_fp.exists()
-    assert False

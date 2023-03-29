@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from collections import OrderedDict
 from ete3 import Tree
 from pathlib import Path
 from sklearn.linear_model import LogisticRegression
@@ -28,12 +29,13 @@ class Algorithms:
         with open(query) as f:
             self.query = f.readline().strip()
 
-    def distance_probs(self) -> dict:
+    def distance_probs(self) -> OrderedDict:
         """
         Calculate distance-based genus probabilities
         Iterate through each node and take the inverse of the distance to the UNKNOWN
         as the addition it makes to the probability
         """
+        logging.info("Starting distance-based probability calculations...")
         dist_prob = {}
         for n in self.t.traverse():
             logging.debug(f"Node: {n.name}")
@@ -49,10 +51,10 @@ class Algorithms:
         dist_prob = {
             k: v / sum(dist_prob.values()) for k, v in dist_prob.items()
         }  # Normalize probabilities
-        dist_prob = sorted(dist_prob.items(), key=lambda x: -x[1])
+        dist_prob = OrderedDict(sorted(dist_prob.items(), key=lambda x: -x[1]))
         return dist_prob
 
-    def bootstrap_probs(self) -> dict:
+    def bootstrap_probs(self) -> OrderedDict:
         """
         Calculate bootstrap-based probabilities
         Iterate up through subtrees, starting with the smallest one containing the UNKNOWN, and at each level
@@ -62,6 +64,7 @@ class Algorithms:
         branch as the others in this tree so their contributions will be 93% of the total probabilities. If the
         next branch is 52, it will account for 52% of the remaining 7% of the total probabilities, and so on.
         """
+        logging.info("Starting bootstrap-based probability calculations...")
         boot_prob = {}
         remaining_frac = 100
 
@@ -94,7 +97,7 @@ class Algorithms:
         boot_prob = {
             k: v / sum(boot_prob.values()) for k, v in boot_prob.items()
         }  # Normalize probabilities
-        boot_prob = sorted(boot_prob.items(), key=lambda x: -x[1])
+        boot_prob = OrderedDict(sorted(boot_prob.items(), key=lambda x: -x[1]))
         return boot_prob
 
     def train(self, training_tree: Tree, min_neighbors: int = 50) -> dict:

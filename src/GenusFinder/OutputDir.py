@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 from pathlib import Path
+from . import parse_fasta
 
 
 class OutputDir:
@@ -31,7 +32,7 @@ class OutputDir:
             self.query_fp = self.root_fp / "query.fasta"
             self.write_query(seq)
 
-        self.bootstraps_fp = self.root_fp / "RAxML_bestTree.genus1"
+        self.bootstraps_fp = self.root_fp / "RAxML_bootstrap.genus1"
         self.base_tree_fp = self.root_fp / "RAxML_bestTree.genus2"
         self.bootstrapped_tree_fp = self.root_fp / "RAxML_bipartitions.final"
 
@@ -39,9 +40,13 @@ class OutputDir:
         self.combined_tree_fp = self.root_fp / "RAxML_bestTree.combined"
 
         self.nearest_seqs_fp = self.root_fp / "nearest_seqs.fasta"
+        self.temp_nearest_seqs_fp = self.root_fp / "temp_nearest_seqs.fasta"
+        self.nearest_seqs_reduced_fp = self.root_fp / "nearest_seqs_reduced.fasta"
         self.nearest_seqs_aligned_fp = self.root_fp / "nearest_seqs_aligned.fasta"
 
         self.probs_fp = self.root_fp / "probabilities.tsv"
+
+    ### Getters
 
     def get_bootstraps(self) -> Path:
         return self.bootstraps_fp
@@ -60,18 +65,45 @@ class OutputDir:
 
     def get_nearest_seqs(self) -> Path:
         return self.nearest_seqs_fp
+    
+    def get_nearest_reduced_seqs(self) -> Path:
+        if not self.nearest_seqs_reduced_fp.exists():
+            self.reduce_subtree()
+        return self.nearest_seqs_reduced_fp
 
     def get_nearest_seqs_aligned(self) -> Path:
         return self.nearest_seqs_aligned_fp
 
     def get_query(self) -> Path:
         return self.query_fp
+    
+    ### Utilities
+    
+    def reduce_subtree(self):
+        ids = []
+        with open(self.nearest_seqs_fp) as f_in, open(self.nearest_seqs_reduced_fp, "w") as f_out:
+            for id, seq in parse_fasta(f_in):
+                if len(id.strip()) > 2:
+                    ids.append(id)
+                    f_out.write(f"> {id}\n")
+                    f_out.write(f"{seq}\n")
+                if len(ids) >= 50:
+                    break
+
+            logging.debug(f"Reduced accessions list: {str(ids)}")
+
+        with open(self.nearest_seqs_reduced_fp, "a+") as f, open(self.query_fp) as query_f:
+            f.write(f"{query_f.readline().strip()}\n")
+            f.write(f"{query_f.readline().strip()}\n")
+
+    ### Writers
 
     def write_probs(self, probs: dict, header: str = ""):
         with open(self.probs_fp, "a+") as f:
-            f.write(f"{header}\n")
+            f.write(f"\n{header}\n\n")
             for s, p in probs.items():
-                f.write(f"{s.split(' ')[0]}\t{round(p * 100, 5)}\n")
+                if p > 0.0001:
+                    f.write(f"{s.split(' ')[0]}\t{round(p * 100, 5)}\n")
 
     def write_query(self, query: str):
         with open(self.query_fp, "w") as f:
