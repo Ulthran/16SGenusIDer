@@ -5,6 +5,7 @@ import os
 import re
 import requests
 import shutil
+import tempfile
 from io import StringIO, TextIOWrapper
 from pathlib import Path
 from tqdm import tqdm
@@ -44,7 +45,9 @@ class DBDir:
         return self._16S_db
 
     def get_LTP_aligned(self) -> Path:
-        return self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
+        ret = self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
+        self.clean_alignment()
+        return ret
 
     def get_LTP_blastdb(self) -> Path:
         return self._get_LTP(self.LTP_blastdb_fp, self.LTP_blastdb_fp.name)
@@ -117,9 +120,21 @@ class DBDir:
                 for seq in egs:
                     db.write(f">{str(seq)[6:-1]} {seq.organism}\n")
                     db.write(f"{seq.sequence}\n")
+
+    def clean_alignment(self):
+        temp_fp = tempfile.TemporaryFile()
+        with open(temp_fp, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
+            for line in f_align.readlines():
+                if line[0] == ">":
+                    f_temp.write(line)
+                else:
+                    f_temp.write(line.replace(" ", "").replace("U", "T").replace(".", "-"))
+                
+        os.remove(self.LTP_aligned_fp)
+        shutil.copyfile(temp_fp, self.LTP_aligned_fp)
     
     @staticmethod
-    def _parse_fasta(f: TextIOWrapper, trim_desc = False) -> dict:
+    def _parse_fasta(f: TextIOWrapper, trim_desc = False):
         f = iter(f)
         try:
             desc = next(f).strip()[1:]
