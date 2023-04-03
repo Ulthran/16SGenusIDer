@@ -32,8 +32,8 @@ class OutputDir:
             self.query_fp = self.root_fp / "query.fasta"
             self.write_query(seq)
 
-        self.bootstraps_fp = self.root_fp / "RAxML_bootstrap.genus1"
-        self.base_tree_fp = self.root_fp / "RAxML_bestTree.genus2"
+        self.bootstraps_fp = self.root_fp / "RAxML_bootstrap.subtree1"
+        self.base_tree_fp = self.root_fp / "RAxML_bestTree.subtree2"
         self.bootstrapped_tree_fp = self.root_fp / "RAxML_bipartitions.final"
 
         self.combined_alignment_fp = self.root_fp / "combined_alignment.fasta"

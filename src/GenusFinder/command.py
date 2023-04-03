@@ -65,7 +65,7 @@ def main(argv=None):
         b=392781,
         N=100,
         m="GTRCAT",
-        n="genus1",
+        n="subtree1",
         p=10000,
         s=out.get_nearest_seqs_aligned(),
         w=out.root_fp,
@@ -73,7 +73,7 @@ def main(argv=None):
     # Create the base tree to use the bootstrapping trees with
     tree_builder.call(
         m="GTRCAT",
-        n="genus2",
+        n="subtree2",
         p=10000,
         s=out.get_nearest_seqs_aligned(),
         w=out.root_fp,
@@ -100,7 +100,7 @@ def main(argv=None):
 
     ### Full tree alignment method ###
 
-    if not args.subtree_only:
+    if args.subtree_only:
         aligner.call_profile(
             True, db.get_LTP_aligned(), out.get_query(), out.get_combined_alignment()
         )
@@ -122,4 +122,4 @@ def main(argv=None):
             algorithms.train(db.get_LTP_tree()), "Full tree alignment probabilities"
         )
 
-    logging.info(f"Full tree method finished! Check {out.probs_fp} for results.")
+        logging.info(f"Full tree method finished! Check {out.probs_fp} for results.")

@@ -37,6 +37,7 @@ class MuscleAligner(CLI):
         self._call()
 
     def call_profile(self, profile: bool, in1: Path, in2: Path, out: Path):
+        self.args.append("muscle")
         if profile:
             self.args.append("-profile")
         self.args += ["-in1", str(in1), "-in2", str(in2), "-out", str(out)]
