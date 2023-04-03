@@ -122,8 +122,8 @@ class DBDir:
                     db.write(f"{seq.sequence}\n")
 
     def clean_alignment(self):
-        temp_fp = tempfile.TemporaryFile()
-        with open(temp_fp, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
+        temp_fp = tempfile.NamedTemporaryFile()
+        with open(temp_fp.name, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
             for line in f_align.readlines():
                 if line[0] == ">":
                     f_temp.write(line)
@@ -131,7 +131,7 @@ class DBDir:
                     f_temp.write(line.replace(" ", "").replace("U", "T").replace(".", "-"))
                 
         os.remove(self.LTP_aligned_fp)
-        shutil.copyfile(temp_fp, self.LTP_aligned_fp)
+        shutil.copyfile(temp_fp.name, self.LTP_aligned_fp)
     
     @staticmethod
     def _parse_fasta(f: TextIOWrapper, trim_desc = False):
