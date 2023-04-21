@@ -151,7 +151,7 @@ class DBDir:
                 if line[0] == ">":
                     f_temp.write(f"{line}")
                 else:
-                    f_temp.write(str([replacements_map[c] for c in line]))
+                    f_temp.write("".join([replacements_map[c] for c in line]))
                 
         os.remove(self.LTP_aligned_fp)
         shutil.copyfile(temp_fp.name, self.LTP_aligned_fp)
