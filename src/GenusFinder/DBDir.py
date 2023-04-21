@@ -124,11 +124,15 @@ class DBDir:
     def clean_alignment(self):
         temp_fp = tempfile.NamedTemporaryFile()
         with open(temp_fp.name, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
+            first = True
             for line in f_align.readlines():
-                if line[0] == ">":
-                    f_temp.write(line)
+                if first:
+                    f_temp.write(f"{line.strip()}\n")
+                    first = False
+                elif line[0] == ">":
+                    f_temp.write(f"\n{line.strip()}\n")
                 else:
-                    f_temp.write(line.replace(" ", "").replace("U", "T").replace(".", "-"))
+                    f_temp.write(line.replace(" ", "").replace("U", "T").replace(".", "-").strip())
                 
         os.remove(self.LTP_aligned_fp)
         shutil.copyfile(temp_fp.name, self.LTP_aligned_fp)
