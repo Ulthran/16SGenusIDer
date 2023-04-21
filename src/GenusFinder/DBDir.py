@@ -122,17 +122,34 @@ class DBDir:
                     db.write(f"{seq.sequence}\n")
 
     def clean_alignment(self):
+        replacements_map = {
+            " ": "",
+            ".": "-",
+            "U": "T",
+            "R": "AG",
+            "Y": "TC",
+            "M": "CA",
+            "K": "TG",
+            "S": "CG",
+            "W": "TA",
+            "H": "TCA",
+            "B": "TCG",
+            "V": "CAG",
+            "D": "TAG",
+            "N": "TCAG",
+            "A": "A",
+            "C": "C",
+            "G": "G",
+            "T": "T",
+        }
+
         temp_fp = tempfile.NamedTemporaryFile()
         with open(temp_fp.name, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
-            first = True
             for line in f_align.readlines():
-                if first:
-                    f_temp.write(f"{line.strip()}\n")
-                    first = False
-                elif line[0] == ">":
-                    f_temp.write(f"\n{line.strip()}\n")
+                if line[0] == ">":
+                    f_temp.write(f"{line}")
                 else:
-                    f_temp.write(line.replace(" ", "").replace("U", "T").replace(".", "-").strip())
+                    f_temp.write([replacements_map[c] for c in line])
                 
         os.remove(self.LTP_aligned_fp)
         shutil.copyfile(temp_fp.name, self.LTP_aligned_fp)
