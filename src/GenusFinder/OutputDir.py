@@ -98,8 +98,8 @@ class OutputDir:
 
     ### Writers
 
-    def write_probs(self, probs: dict, header: str = ""):
-        with open(self.probs_fp, "a+") as f:
+    def write_probs(self, probs: dict, header: str = "", write_mode: str = "a+"):
+        with open(self.probs_fp, write_mode) as f:
             f.write(f"\n{header}\n\n")
             for s, p in probs.items():
                 if p > 0.0001:

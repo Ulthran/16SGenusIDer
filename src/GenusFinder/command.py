@@ -91,7 +91,8 @@ def main(argv=None):
     algorithms = Algorithms(
         out.get_bootstrapped_tree(), db.get_type_species(), out.get_query()
     )
-    out.write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities")
+    # Set write_mode to "w" to clear any existing output
+    out.write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities", "w")
     out.write_probs(
         algorithms.bootstrap_probs(), "Bootstrap-based subtree probabilities"
     )
