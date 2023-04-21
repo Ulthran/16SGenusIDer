@@ -41,7 +41,6 @@ class MuscleAligner(CLI):
         if profile:
             self.args.append("-profile")
         self.args += ["-in1", str(in1), "-in2", str(in2), "-out", str(out)]
-        self.args += ["-maxiters", "1", "-diags"]
 
         self._call()
 
