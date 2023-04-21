@@ -148,7 +148,7 @@ class DBDir:
             "\n": "\n",
         }
 
-        temp_fp = tempfile.NamedTemporaryFile().name
+        temp_fp = self.root_fp / "temp_alignment.fasta"
         with open(temp_fp, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
             for line in f_align.readlines():
                 if line[0] == ">":
@@ -157,7 +157,7 @@ class DBDir:
                     f_temp.write("".join([replacements_map[c] for c in line]))
                 
         os.remove(self.LTP_aligned_fp)
-        shutil.copyfile(temp_fp, self.LTP_aligned_fp)
+        os.rename(temp_fp, self.LTP_aligned_fp)
 
         #temp_fp = tempfile.NamedTemporaryFile().name
         #aligner = MuscleAligner()
