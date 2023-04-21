@@ -126,25 +126,25 @@ class DBDir:
 
     def clean_alignment(self):
         replacements_map = {
-            " ": "",
-            ".": "-",
-            "U": "T",
-            "R": "AG",
-            "Y": "TC",
-            "M": "CA",
-            "K": "TG",
-            "S": "CG",
-            "W": "TA",
-            "H": "TCA",
-            "B": "TCG",
-            "V": "CAG",
-            "D": "TAG",
+            " ": "", # LTP's weird syntax
+            ".": "----",
+            "U": "T---",
+            "R": "AG--", # Expand these abbreviations
+            "Y": "TC--",
+            "M": "CA--",
+            "K": "TG--",
+            "S": "CG--",
+            "W": "TA--",
+            "H": "TCA-",
+            "B": "TCG-",
+            "V": "CAG-",
+            "D": "TAG-",
             "N": "TCAG",
-            "A": "A",
-            "C": "C",
-            "G": "G",
-            "T": "T",
-            "-": "-",
+            "A": "A---", # Keep what's already good
+            "C": "C---",
+            "G": "G---",
+            "T": "T---",
+            "-": "----",
             "\n": "\n",
         }
 
@@ -159,12 +159,12 @@ class DBDir:
         os.remove(self.LTP_aligned_fp)
         shutil.copyfile(temp_fp, self.LTP_aligned_fp)
 
-        temp_fp = tempfile.NamedTemporaryFile().name
-        aligner = MuscleAligner()
-        aligner.call_simple(self.LTP_aligned_fp, temp_fp)
+        #temp_fp = tempfile.NamedTemporaryFile().name
+        #aligner = MuscleAligner()
+        #aligner.call_simple(self.LTP_aligned_fp, temp_fp)
 
-        os.remove(self.LTP_aligned_fp)
-        shutil.copyfile(temp_fp, self.LTP_aligned_fp)
+        #os.remove(self.LTP_aligned_fp)
+        #shutil.copyfile(temp_fp, self.LTP_aligned_fp)
     
     @staticmethod
     def _parse_fasta(f: TextIOWrapper, trim_desc = False):
