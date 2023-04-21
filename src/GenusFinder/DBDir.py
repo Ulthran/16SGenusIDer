@@ -178,13 +178,14 @@ class DBDir:
                         logging.error("Annotation line empty")
                         return False
                 else:
+                    acceptable_chars = set(["A", "C", "G", "T", "-", "\n"])
                     if seq_len == 0:
                         seq_len = len(line)
                     elif seq_len != len(line):
                         logging.error("Ragged alignment")
                         return False
-                    if set(list(line)).issubset(set(["A", "C", "G", "T", "-", "\n"])):
-                        logging.error(f"{set(list(line))} is not subset of {['A', 'C', 'G', 'T', '-', '\n']}")
+                    if set(list(line)).issubset(acceptable_chars):
+                        logging.error(f"{set(list(line))} is not subset of {acceptable_chars}")
                         return False
                 last = not last
             return True
