@@ -1,5 +1,6 @@
 import argparse
 import logging
+import sys
 
 from .CLI import MuscleAligner, RAxMLTreeBuilder, VsearchSearcher
 from .DBDir import DBDir
@@ -42,6 +43,9 @@ def main(argv=None):
     )
 
     args = p.parse_args(argv)
+    if not args.seq:
+        p.print_help(sys.stderr)
+        sys.exit(1)
     logging.basicConfig()
     logging.getLogger().setLevel(args.log_level)
 
