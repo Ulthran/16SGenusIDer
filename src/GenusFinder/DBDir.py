@@ -6,6 +6,7 @@ import re
 import requests
 import shutil
 import tempfile
+from .CLI import MuscleAligner
 from io import StringIO, TextIOWrapper
 from pathlib import Path
 from tqdm import tqdm
@@ -147,8 +148,8 @@ class DBDir:
             "\n": "\n",
         }
 
-        temp_fp = tempfile.NamedTemporaryFile()
-        with open(temp_fp.name, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
+        temp_fp = tempfile.NamedTemporaryFile().name
+        with open(temp_fp, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
             for line in f_align.readlines():
                 if line[0] == ">":
                     f_temp.write(f"{line}")
@@ -156,7 +157,14 @@ class DBDir:
                     f_temp.write("".join([replacements_map[c] for c in line]))
                 
         os.remove(self.LTP_aligned_fp)
-        shutil.copyfile(temp_fp.name, self.LTP_aligned_fp)
+        shutil.copyfile(temp_fp, self.LTP_aligned_fp)
+
+        temp_fp = tempfile.NamedTemporaryFile().name
+        aligner = MuscleAligner()
+        aligner.call_simple(self.LTP_aligned_fp, temp_fp)
+
+        os.remove(self.LTP_aligned_fp)
+        shutil.copyfile(temp_fp, self.LTP_aligned_fp)
     
     @staticmethod
     def _parse_fasta(f: TextIOWrapper, trim_desc = False):

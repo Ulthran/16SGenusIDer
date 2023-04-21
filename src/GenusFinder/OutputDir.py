@@ -107,5 +107,5 @@ class OutputDir:
 
     def write_query(self, query: str):
         with open(self.query_fp, "w") as f:
-            f.write("> UNKNOWN\n")
+            f.write(">UNKNOWN\n")
             f.write(f"{query}\n")
