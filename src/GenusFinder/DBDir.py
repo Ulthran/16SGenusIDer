@@ -148,9 +148,10 @@ class DBDir:
             "\n": "\n",
         }
 
+        logging.info("Cleaning LTP alignment...")
         temp_fp = self.root_fp / "temp_alignment.fasta"
         with open(temp_fp, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
-            for line in f_align.readlines():
+            for i, line in enumerate(tqdm(f_align)):
                 if line[0] == ">":
                     f_temp.write(f"{line}")
                 else:

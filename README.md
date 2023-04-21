@@ -39,6 +39,8 @@ Using an NCBI API key will speed up the process of creating the 16S database, yo
 idgenus --seq ATCGATCGATCGATCG...GCTACTATACGA --ncbi_api_key XXXXXXXXXXXXXXXXXXXXX
 ```
 
+Note: The LTP alignment file (used in the full tree method only) takes up 
+
 ## Steps
 
 NEW
