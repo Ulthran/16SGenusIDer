@@ -5,6 +5,7 @@ import os
 import re
 import requests
 import shutil
+import sys
 import tempfile
 from .CLI import MuscleAligner
 from io import StringIO, TextIOWrapper
@@ -47,6 +48,8 @@ class DBDir:
 
     def get_LTP_aligned(self) -> Path:
         ret = self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
+        if not self.verify_alignment():
+            sys.exit()
         return ret
 
     def get_LTP_blastdb(self) -> Path:
@@ -161,13 +164,30 @@ class DBDir:
                 
         os.remove(self.LTP_aligned_fp)
         os.rename(temp_fp, self.LTP_aligned_fp)
-
-        #temp_fp = tempfile.NamedTemporaryFile().name
-        #aligner = MuscleAligner()
-        #aligner.call_simple(self.LTP_aligned_fp, temp_fp)
-
-        #os.remove(self.LTP_aligned_fp)
-        #shutil.copyfile(temp_fp, self.LTP_aligned_fp)
+    
+    def verify_alignment(self) -> bool:
+        with open(self.LTP_aligned_fp) as f:
+            last = False # False: seq last, True: annotation last
+            seq_len = 0 # Get seq len on first pass
+            for line in f.readlines():
+                if last:
+                    if line[0] != ">":
+                        logging.error("Annotation line doesn't start with '>'")
+                        return False
+                    if len(line.strip()) < 2:
+                        logging.error("Annotation line empty")
+                        return False
+                else:
+                    if seq_len == 0:
+                        seq_len = len(line)
+                    elif seq_len != len(line):
+                        logging.error("Ragged alignment")
+                        return False
+                    if set(list(line)).issubset(set(["A", "C", "G", "T", "-", "\n"])):
+                        logging.error(f"{set(list(line))} is not subset of {['A', 'C', 'G', 'T', '-', '\n']}")
+                        return False
+                last = not last
+            return True
     
     @staticmethod
     def _parse_fasta(f: TextIOWrapper, trim_desc = False):
