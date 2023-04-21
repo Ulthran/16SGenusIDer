@@ -151,7 +151,7 @@ class DBDir:
         logging.info("Cleaning LTP alignment...")
         temp_fp = self.root_fp / "temp_alignment.fasta"
         with open(temp_fp, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
-            with tqdm.tqdm(total=len(f_align.readlines())) as pbar:
+            with tqdm(total=len(f_align.readlines())) as pbar:
                 for line in f_align.readlines():
                     pbar.update(1)
                     if line[0] == ">":
