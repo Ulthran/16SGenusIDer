@@ -141,6 +141,7 @@ class DBDir:
             "C": "C",
             "G": "G",
             "T": "T",
+            "\n": "\n",
         }
 
         temp_fp = tempfile.NamedTemporaryFile()
