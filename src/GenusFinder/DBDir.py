@@ -46,7 +46,6 @@ class DBDir:
 
     def get_LTP_aligned(self) -> Path:
         ret = self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
-        self.clean_alignment()
         return ret
 
     def get_LTP_blastdb(self) -> Path:
@@ -91,6 +90,9 @@ class DBDir:
             logging.info(f"Fetching {url}...")
             with urlopen(url) as resp, open(fp, "wb") as f:
                 shutil.copyfileobj(resp, f)
+            
+            if "aligned" in name:
+                self.clean_alignment()
         else:
             logging.info(f"Found {fp}, skipping download...")
 
