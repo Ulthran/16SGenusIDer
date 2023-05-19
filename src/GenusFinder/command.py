@@ -57,7 +57,7 @@ def main(argv=None):
 
     searcher = VsearchSearcher()
     if not (args.overwrite or out.get_nearest_seqs().exists()):
-        searcher.call(db.type_species.get(), out.get_query(), 0.9, out.get_nearest_seqs())
+        searcher.call(db.get("type_species"), out.get_query(), 0.9, out.get_nearest_seqs())
 
     aligner = MuscleAligner()
     if not (args.overwrite or out.get_nearest_seqs_aligned().exists()):
@@ -93,7 +93,7 @@ def main(argv=None):
     )
 
     algorithms = Algorithms(
-        out.get_bootstrapped_tree(), db.type_species.get(), out.get_query()
+        out.get_bootstrapped_tree(), db.get("type_species"), out.get_query()
     )
     # Set write_mode to "w" to clear any existing output
     out.write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities", "w")
@@ -108,7 +108,7 @@ def main(argv=None):
     if args.subtree_only:
         if not (args.overwrite or out.get_combined_alignment().exists()):
             aligner.call_profile(
-                True, db.LTP_aligned.get(), out.get_query(), out.get_combined_alignment()
+                True, db.get("alignment"), out.get_query(), out.get_combined_alignment()
             )
 
         # Add the unknown onto the LTP tree using the combined alignment
@@ -120,12 +120,12 @@ def main(argv=None):
             "combined",
             10000,
             out.get_combined_alignment(),
-            db.LTP_tree.get(),
+            db.get("tree"),
             out.root_fp,
             None,
         )
 
-        algorithms = Algorithms(db.LTP_tree.get(), db.type_species.get(), out.get_query())
+        algorithms = Algorithms(db.get("tree"), db.get("type_species"), out.get_query())
         out.write_probs(
             algorithms.train(), "Full tree alignment probabilities"
         )
