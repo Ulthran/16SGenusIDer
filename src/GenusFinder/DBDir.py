@@ -6,7 +6,6 @@ import re
 import requests
 import shutil
 import sys
-from enum import Enum
 from ete3 import Tree
 from ete3.parser.newick import NewickError
 from io import TextIOWrapper
@@ -201,24 +200,12 @@ class TypeSpecies(DBFile):
                     f_out.write(">{0}\t{1}\n{2}\n".format(accession, species_name, seq.replace(" ", "").replace("U", "T")))
 
 
-class FileName(Enum):
-    alignment = "alignment"
-    blastdb = "blastdb"
-    tree = "tree"
-    type_species = "type_species"
-
-    def __str__(self):
-        return self.value
-    
-
 class DBDir:
     """
     Controller for all of GenusFinder's database files\n
     Maintains a 16S db made from an NCBI eutils query and mulitiple LTP files\n
     Interface directly with internal objects\n
-    i.e. call LTPAlignment's get() method directly\n
-    Or use the generalized DBDir get() function\n
-    i.e. call DBDir.get("alignment")
+    i.e. call LTPAlignment's get() method directly
     """
 
     def __init__(self, fp: Path, esearch_api_key: str) -> None:
@@ -234,23 +221,6 @@ class DBDir:
         self.LTP_tree = LTPTree(self.root_fp / f"LTP_all_{self.LTP_VERSION}.ntree")
         #self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
         self.type_species = TypeSpecies(self.root_fp / "type_species.fasta", self.LTP_blastdb)
-    
-    def get(self, name: FileName | str) -> Path:
-        match name:
-            case "alignment":
-                return self.LTP_aligned.get()
-            case "blastdb":
-                return self.LTP_blastdb.get()
-            case "tree":
-                return self.LTP_tree.get()
-            case "type_species":
-                return self.type_species.get()
-            case _:
-                logging.error(f"There is no {name} file in the database")
-                sys.exit()
-
-    
-    
     
     
     

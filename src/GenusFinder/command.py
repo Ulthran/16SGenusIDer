@@ -56,12 +56,12 @@ def main(argv=None):
     ### Subtree alignment method ###
 
     searcher = VsearchSearcher()
-    if not (args.overwrite or out.get_nearest_seqs().exists()):
-        searcher.call(db.get("type_species"), out.get_query(), 0.9, out.get_nearest_seqs())
+    if not (args.overwrite or out.nearest_seqs.get().exists()):
+        searcher.call(db.type_species.get(), out.query.get(), 0.9, out.nearest_seqs.get())
 
     aligner = MuscleAligner()
-    if not (args.overwrite or out.get_nearest_seqs_aligned().exists()):
-        aligner.call_simple(out.get_nearest_reduced_seqs(), out.get_nearest_seqs_aligned())
+    if not (args.overwrite or out.nearest_seqs_aligned.get().exists()):
+        aligner.call_simple(out.nearest_seqs.get(), out.nearest_seqs_aligned.get())
 
     tree_builder = RAxMLTreeBuilder()
     # Create 100 bootstrap trees
@@ -71,7 +71,7 @@ def main(argv=None):
         m="GTRCAT",
         n="subtree1",
         p=10000,
-        s=out.get_nearest_seqs_aligned(),
+        s=out.nearest_seqs_aligned.get(),
         w=out.root_fp,
     )
     # Create the base tree to use the bootstrapping trees with
@@ -79,7 +79,7 @@ def main(argv=None):
         m="GTRCAT",
         n="subtree2",
         p=10000,
-        s=out.get_nearest_seqs_aligned(),
+        s=out.nearest_seqs_aligned.get(),
         w=out.root_fp,
     )
     # Create bootstrapped tree
@@ -87,17 +87,17 @@ def main(argv=None):
         f="b",
         m="PROTGAMMAILG",
         n="final",
-        t=out.get_base_tree(),
+        t=out.base_tree.get(),
         w=out.root_fp,
-        z=out.get_bootstraps(),
+        z=out.bootstraps.get(),
     )
 
     algorithms = Algorithms(
-        out.get_bootstrapped_tree(), db.get("type_species"), out.get_query()
+        out.bootstrapped_tree.get(), db.type_species.get(), out.query.get()
     )
     # Set write_mode to "w" to clear any existing output
-    out.write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities", "w")
-    out.write_probs(
+    out.probs.get().write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities", "w")
+    out.probs.get().write_probs(
         algorithms.bootstrap_probs(), "Bootstrap-based subtree probabilities"
     )
 
@@ -106,9 +106,9 @@ def main(argv=None):
     ### Full tree alignment method ###
 
     if args.subtree_only:
-        if not (args.overwrite or out.get_combined_alignment().exists()):
+        if not (args.overwrite or out.combined_alignment.get().exists()):
             aligner.call_profile(
-                True, db.get("alignment"), out.get_query(), out.get_combined_alignment()
+                True, db.LTP_aligned.get(), out.query.get(), out.combined_alignment.get()
             )
 
         # Add the unknown onto the LTP tree using the combined alignment
@@ -119,15 +119,15 @@ def main(argv=None):
             "GTRCAT",
             "combined",
             10000,
-            out.get_combined_alignment(),
-            db.get("tree"),
+            out.combined_alignment.get(),
+            db.LTP_tree.get(),
             out.root_fp,
             None,
         )
 
-        algorithms = Algorithms(db.get("tree"), db.get("type_species"), out.get_query())
-        out.write_probs(
+        algorithms = Algorithms(db.LTP_tree.get(), db.type_species.get(), out.query.get())
+        out.probs.get().write_probs(
             algorithms.train(), "Full tree alignment probabilities"
         )
 
-        logging.info(f"Full tree method finished! Check {out.probs_fp} for results.")
+        logging.info(f"Full tree method finished! Check {out.probs.get()} for results.")
