@@ -57,7 +57,7 @@ def main(argv=None):
 
     searcher = VsearchSearcher()
     if not (args.overwrite or out.get_nearest_seqs().exists()):
-        searcher.call(db.get_type_species(), out.get_query(), 0.9, out.get_nearest_seqs())
+        searcher.call(db.type_species.get(), out.get_query(), 0.9, out.get_nearest_seqs())
 
     aligner = MuscleAligner()
     if not (args.overwrite or out.get_nearest_seqs_aligned().exists()):
@@ -93,7 +93,7 @@ def main(argv=None):
     )
 
     algorithms = Algorithms(
-        out.get_bootstrapped_tree(), db.get_type_species(), out.get_query()
+        out.get_bootstrapped_tree(), db.type_species.get(), out.get_query()
     )
     # Set write_mode to "w" to clear any existing output
     out.write_probs(algorithms.distance_probs(), "Distance-based subtree probabilities", "w")
@@ -108,22 +108,9 @@ def main(argv=None):
     if args.subtree_only:
         if not (args.overwrite or out.get_combined_alignment().exists()):
             aligner.call_profile(
-                True, db.get_LTP_aligned(), out.get_query(), out.get_combined_alignment()
+                True, db.LTP_aligned.get(), out.get_query(), out.get_combined_alignment()
             )
 
-        # Root tree for combination step
-        tree_builder.call(
-            None,
-            "I",
-            None,
-            "GTRCAT",
-            "rooted",
-            None,
-            None,
-            db.get_LTP_tree(),
-            db.root_fp,
-            None,
-        )
         # Add the unknown onto the LTP tree using the combined alignment
         tree_builder.call(
             None,
@@ -133,12 +120,12 @@ def main(argv=None):
             "combined",
             10000,
             out.get_combined_alignment(),
-            db.get_rooted_LTP_tree(),
+            db.LTP_tree.get(),
             out.root_fp,
             None,
         )
 
-        algorithms = Algorithms(db.get_LTP_tree(), db.get_type_species(), out.get_query())
+        algorithms = Algorithms(db.LTP_tree.get(), db.type_species.get(), out.get_query())
         out.write_probs(
             algorithms.train(), "Full tree alignment probabilities"
         )

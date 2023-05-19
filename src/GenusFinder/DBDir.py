@@ -166,12 +166,12 @@ class TypeSpecies(DBFile):
     Holds and creates the type_species fasta file
     """
 
-    def __init__(self, fp: Path, blastdb_fp: LTPBlast) -> None:
+    def __init__(self, fp: Path, blastdb: LTPBlast) -> None:
         super().__init__(fp)
-        self.blastdb_fp = blastdb_fp
+        self.blastdb = blastdb
     
     def get(self) -> Path:
-        assert self.blastdb_fp.get().exists()
+        assert self.blastdb.get().exists()
 
         if not self.fp.exists():
             logging.info(f"Creating {self.fp}...")
@@ -183,7 +183,7 @@ class TypeSpecies(DBFile):
     
     def _generate_type_species(self):
         accession_cts = collections.defaultdict(int)
-        with open(self.blastdb_fp.get()) as f_in:
+        with open(self.blastdb.get()) as f_in:
             with open(self.fp, "w") as f_out:
                 for desc, seq in parse_fasta(f_in):
                     accession, species_name = parse_desc(desc)
@@ -203,7 +203,9 @@ class TypeSpecies(DBFile):
 class DBDir:
     """
     Controller for all of GenusFinder's database files\n
-    Maintains a 16S db made from an NCBI eutils query and mulitiple LTP files
+    Maintains a 16S db made from an NCBI eutils query and mulitiple LTP files\n
+    Interface directly with internal objects\n
+    i.e. call LTPAlignment's get() method directly
     """
 
     def __init__(self, fp: Path, esearch_api_key: str) -> None:
@@ -218,7 +220,7 @@ class DBDir:
         self.LTP_blastdb = LTPBlast(self.root_fp / f"LTP_{self.LTP_VERSION}_blastdb.fasta")
         self.LTP_tree = LTPTree(self.root_fp / f"LTP_all_{self.LTP_VERSION}.ntree")
         self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
-        self.type_species = TypeSpecies(self.root_fp / "type_species.fasta")
+        self.type_species = TypeSpecies(self.root_fp / "type_species.fasta", self.LTP_blastdb)
 
     def get_16S_db(self) -> Path:
         if not self._16S_db.exists():
