@@ -215,43 +215,52 @@ class DBDir:
         self.key = esearch_api_key
         self.LTP_VERSION = "06_2022"
 
-        self._16S_db = self.root_fp / "16S.db"
+        #self._16S_db = self.root_fp / "16S.db"
         self.LTP_aligned = LTPAlignment(self.root_fp / f"LTP_{self.LTP_VERSION}_aligned.fasta")
         self.LTP_blastdb = LTPBlast(self.root_fp / f"LTP_{self.LTP_VERSION}_blastdb.fasta")
         self.LTP_tree = LTPTree(self.root_fp / f"LTP_all_{self.LTP_VERSION}.ntree")
-        self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
+        #self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
         self.type_species = TypeSpecies(self.root_fp / "type_species.fasta", self.LTP_blastdb)
 
-    def get_16S_db(self) -> Path:
-        if not self._16S_db.exists():
-            logging.info(f"Creating {self._16S_db}...")
-            self._create_16S_db()
-        else:
-            logging.info(f"Found {self._16S_db}, skipping download...")
-
-        return self._16S_db
-
-    def _create_16S_db(self):
-        def chunker(seq, size):
-            return (seq[pos : pos + size] for pos in range(0, len(seq), size))
-
-        search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=33175%5BBioProject%5D%20OR%2033317%5BBioProject%5D&retmax=25000"
-        search_response = requests.get(search_url)
-        search_tree = ET.fromstring(search_response.content)
-
-        ids = list()
-        for id in search_tree[3]:
-            ids.append(id.text)
-
-        ec = eutils.Client(api_key=self.key)
-
-        with open(self._16S_db, "w") as db, tqdm(total=round(len(ids) / 250)) as pbar:
-            for group in chunker(ids, 250):
-                pbar.update(1)
-                egs = ec.efetch(db="nuccore", id=",".join(group))
-                for seq in egs:
-                    db.write(f">{str(seq)[6:-1]} {seq.organism}\n")
-                    db.write(f"{seq.sequence}\n")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+#    def get_16S_db(self) -> Path:
+#        if not self._16S_db.exists():
+#            logging.info(f"Creating {self._16S_db}...")
+#            self._create_16S_db()
+#        else:
+#            logging.info(f"Found {self._16S_db}, skipping download...")
+#
+#        return self._16S_db
+#
+#    def _create_16S_db(self):
+#        def chunker(seq, size):
+#            return (seq[pos : pos + size] for pos in range(0, len(seq), size))
+#
+#        search_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=nuccore&term=33175%5BBioProject%5D%20OR%2033317%5BBioProject%5D&retmax=25000"
+#        search_response = requests.get(search_url)
+#        search_tree = ET.fromstring(search_response.content)
+#
+#        ids = list()
+#        for id in search_tree[3]:
+#            ids.append(id.text)
+#
+#        ec = eutils.Client(api_key=self.key)
+#
+#        with open(self._16S_db, "w") as db, tqdm(total=round(len(ids) / 250)) as pbar:
+#            for group in chunker(ids, 250):
+#                pbar.update(1)
+#                egs = ec.efetch(db="nuccore", id=",".join(group))
+#                for seq in egs:
+#                    db.write(f">{str(seq)[6:-1]} {seq.organism}\n")
+#                    db.write(f"{seq.sequence}\n")
     
 
 
