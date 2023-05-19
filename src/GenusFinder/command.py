@@ -106,10 +106,25 @@ def main(argv=None):
     ### Full tree alignment method ###
 
     if args.subtree_only:
-        aligner.call_profile(
-            True, db.get_LTP_aligned(), out.get_query(), out.get_combined_alignment()
-        )
+        if not (args.overwrite or out.get_combined_alignment().exists()):
+            aligner.call_profile(
+                True, db.get_LTP_aligned(), out.get_query(), out.get_combined_alignment()
+            )
 
+        # Root tree for combination step
+        tree_builder.call(
+            None,
+            "I",
+            None,
+            "GTRCAT",
+            "rooted",
+            None,
+            None,
+            db.get_LTP_tree(),
+            db.root_fp,
+            None,
+        )
+        # Add the unknown onto the LTP tree using the combined alignment
         tree_builder.call(
             None,
             "y",
@@ -118,13 +133,14 @@ def main(argv=None):
             "combined",
             10000,
             out.get_combined_alignment(),
-            db.get_LTP_tree(),
+            db.get_rooted_LTP_tree(),
             out.root_fp,
             None,
         )
 
+        algorithms = Algorithms(db.get_LTP_tree(), db.get_type_species(), out.get_query())
         out.write_probs(
-            algorithms.train(db.get_LTP_tree()), "Full tree alignment probabilities"
+            algorithms.train(), "Full tree alignment probabilities"
         )
 
         logging.info(f"Full tree method finished! Check {out.probs_fp} for results.")

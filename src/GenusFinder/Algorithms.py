@@ -100,11 +100,11 @@ class Algorithms:
         boot_prob = OrderedDict(sorted(boot_prob.items(), key=lambda x: -x[1]))
         return boot_prob
 
-    def train(self, training_tree: Tree, min_neighbors: int = 50) -> dict:
+    def train(self, min_neighbors: int = 50) -> dict:
         ts = [
             s for s in self.get_nearby_species(min_neighbors) if self.is_type_species(s)
         ]
-        lrs = {s: self.learn_curve(s, training_tree) for s in ts}
+        lrs = {s: self.learn_curve(s) for s in ts}
         probs = {
             s: self.probability_for(lr, self.distance_to_unknown)
             for s, lr in lrs.items()
@@ -146,9 +146,8 @@ class Algorithms:
         probs = {name: probability_for(lr, distances[name]) for name, lr in lrs}
         print(probs)
 
-    @staticmethod
-    def learn_curve(type_species: str, t: Tree):
-        n = t.search_nodes(name=type_species)[0]
+    def learn_curve(self, type_species: str):
+        n = self.t.search_nodes(name=type_species)[0]
         genus_name = type_species[0]
         n_iter = n.up
 
@@ -159,7 +158,7 @@ class Algorithms:
         logging.debug(n_iter)
 
         if not n_iter:
-            logging.error("Oh no")
+            logging.error("Tree iteration failure")
 
         X = [
             n.get_distance(n_loop.name)

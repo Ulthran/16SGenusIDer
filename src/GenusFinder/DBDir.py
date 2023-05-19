@@ -6,13 +6,94 @@ import re
 import requests
 import shutil
 import sys
-import tempfile
-from .CLI import MuscleAligner
-from io import StringIO, TextIOWrapper
+from ete3 import Tree
+from ete3.parser.newick import NewickError
+from io import TextIOWrapper
+from itertools import groupby
 from pathlib import Path
 from tqdm import tqdm
 from urllib.request import urlopen
 from xml.etree import ElementTree as ET
+from .parsers import parse_desc, parse_fasta
+
+
+class DBFile:
+    """
+    Base class to define a file in the database and associated operations
+    """
+
+    def __init__(self, fp: Path) -> None:
+        self.fp = fp
+        self.fn = fp.name
+
+    def get(self) -> Path:
+        return self.fp
+
+
+class LTPAlignment(DBFile):
+    """
+    Holds and operates on the LTP alignment
+    """
+
+    def __init__(self, fp: Path) -> None:
+        super().__init__(fp)
+
+
+class LTPTree(DBFile):
+    """
+    Holds and operates on the LTP tree
+    """
+    
+    def __init__(self, fp: Path) -> None:
+        super().__init__(fp)
+
+
+class LTPBlast(DBFile):
+    """
+    Holds and operates on the LTP blast db
+    """
+
+    def __init__(self, fp: Path) -> None:
+        super().__init__(fp)
+
+
+class TypeSpecies(DBFile):
+    """
+    Holds and creates the type_species fasta file
+    """
+
+    def __init__(self, fp: Path, blastdb_fp: LTPBlast) -> None:
+        super().__init__(fp)
+        self.blastdb_fp = blastdb_fp
+    
+    def get(self) -> Path:
+        assert self.blastdb_fp.get().exists()
+
+        if not self.fp.exists():
+            logging.info(f"Creating {self.fp}...")
+            self._generate_type_species()
+        else:
+            logging.info(f"Found {self.fp}, skipping creation...")
+
+        return super().get()
+    
+    def _generate_type_species(self):
+        accession_cts = collections.defaultdict(int)
+        with open(self.blastdb_fp.get()) as f_in:
+            with open(self.fp, "w") as f_out:
+                for desc, seq in parse_fasta(f_in):
+                    accession, species_name = parse_desc(desc)
+                    if not accession or not species_name:
+                        continue
+                    # Some accessions refer to genomes with more than one 16S gene
+                    # So accessions can be legitimately repeated with distinct gene sequences
+                    accession_times_previously_seen = accession_cts[accession]
+                    accession_cts[accession] += 1
+                    if accession_times_previously_seen > 0:
+                        accession = "{0}_repeat{1}".format(
+                            accession, accession_times_previously_seen
+                        )
+                    f_out.write(">{0}\t{1}\n{2}\n".format(accession, species_name, seq.replace(" ", "").replace("U", "T")))
 
 
 class DBDir:
@@ -34,6 +115,7 @@ class DBDir:
         self.LTP_aligned_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_aligned.fasta"
         self.LTP_blastdb_fp = self.root_fp / f"LTP_{self.LTP_VERSION}_blastdb.fasta"
         self.LTP_tree_fp = self.root_fp / f"LTP_all_{self.LTP_VERSION}.ntree"
+        self.rooted_LTP_tree_fp = self.root_fp / "RAxML_bestTree.rooted"
         self.LTP_csv_fp = self.root_fp / f"LTP_{self.LTP_VERSION}.csv"
         self.type_species_fp = self.root_fp / "type_species.fasta"
 
@@ -47,16 +129,25 @@ class DBDir:
         return self._16S_db
 
     def get_LTP_aligned(self) -> Path:
-        ret = self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
+        #ret = self._get_LTP(self.LTP_aligned_fp, self.LTP_aligned_fp.name)
+        shutil.copyfile(self.root_fp / "LTP", self.LTP_aligned_fp)
+        self.clean_alignment()
         if not self.verify_alignment():
             sys.exit()
+        ret = self.LTP_aligned_fp
         return ret
 
     def get_LTP_blastdb(self) -> Path:
         return self._get_LTP(self.LTP_blastdb_fp, self.LTP_blastdb_fp.name)
 
     def get_LTP_tree(self) -> Path:
-        return self._get_LTP(self.LTP_tree_fp, self.LTP_tree_fp.name)
+        ret = self._get_LTP(self.LTP_tree_fp, self.LTP_tree_fp.name)
+        #if not self.verify_tree():
+        #    sys.exit()
+        return ret
+    
+    def get_rooted_LTP_tree(self) -> Path:
+        return 
 
     def get_LTP_csv(self) -> Path:
         return self._get_LTP(self.LTP_csv_fp, self.LTP_csv_fp.name)
@@ -86,7 +177,7 @@ class DBDir:
                         accession = "{0}_repeat{1}".format(
                             accession, accession_times_previously_seen
                         )
-                    f_out.write(">{0}\t{1}\n{2}\n".format(accession, species_name, seq))
+                    f_out.write(">{0}\t{1}\n{2}\n".format(accession, species_name, seq.replace(" ", "").replace("U", "T")))
 
     def _get_LTP(self, fp: Path, name: str) -> Path:
         if not fp.exists():
@@ -97,6 +188,8 @@ class DBDir:
             
             if "aligned" in name:
                 self.clean_alignment()
+            elif "tree" in name:
+                self.clean_tree()
         else:
             logging.info(f"Found {fp}, skipping download...")
 
@@ -155,6 +248,7 @@ class DBDir:
         temp_fp = self.root_fp / "temp_alignment.fasta"
         with open(temp_fp, "w") as f_temp, open(self.LTP_aligned_fp) as f_align:
             with tqdm(total=len(f_align.readlines())) as pbar:
+                f_align.seek(0)
                 for line in f_align.readlines():
                     pbar.update(1)
                     if line[0] == ">":
@@ -167,61 +261,55 @@ class DBDir:
     
     def verify_alignment(self) -> bool:
         with open(self.LTP_aligned_fp) as f:
-            last = False # False: seq last, True: annotation last
             seq_len = 0 # Get seq len on first pass
-            for line in f.readlines():
-                if last:
-                    if line[0] != ">":
-                        logging.error("Annotation line doesn't start with '>'")
-                        return False
-                    if len(line.strip()) < 2:
-                        logging.error("Annotation line empty")
-                        return False
-                else:
-                    acceptable_chars = set(["A", "C", "G", "T", "-", "\n"])
-                    if seq_len == 0:
-                        seq_len = len(line)
-                    elif seq_len != len(line):
-                        logging.error("Ragged alignment")
-                        return False
-                    if set(list(line)).issubset(acceptable_chars):
-                        logging.error(f"{set(list(line))} is not subset of {acceptable_chars}")
-                        return False
-                last = not last
+            for desc, seq in self._parse_fasta(f):
+                if len(desc.strip()) < 2:
+                    logging.error("Annotation line empty")
+                    return False
+                acceptable_chars = set(["A", "C", "G", "T", "-"])
+                if seq_len == 0:
+                    seq_len = len(seq)
+                elif seq_len != len(seq):
+                    logging.error(f"Ragged alignment of length {len(seq)} instead of {seq_len}: {desc}")
+                    return False
+                if not set(list(seq)).issubset(acceptable_chars):
+                    logging.error(f"{set(list(seq))} is not a subset of {acceptable_chars}")
+                    return False
             return True
     
-    @staticmethod
-    def _parse_fasta(f: TextIOWrapper, trim_desc = False):
-        f = iter(f)
-        try:
-            desc = next(f).strip()[1:]
-            if trim_desc:
-                desc = desc.split()[0]
-        except StopIteration:
-            return
-        seq = StringIO()
-        for line in f:
-            line = line.strip()
-            if line.startswith(">"):
-                yield desc, seq.getvalue()
-                desc = line[1:]
-                if trim_desc:
-                    desc = desc.split()[0]
-                seq = StringIO()
-            else:
-                seq.write(line.replace(" ", "").replace("U", "T"))
-        yield desc, seq.getvalue()
+    def clean_tree(self):
+        logging.info("Cleaning LTP tree...")
+        temp_fp = self.root_fp / "temp_tree.ntree"
+        with open(temp_fp, "w") as f_temp, open(self.LTP_tree_fp) as f_tree:
+            header = False
+            for line in f_tree.readlines():
+                if line[0] == "[":
+                    header = True
+                if header:
+                    if line[0] == "]":
+                        header = False
+                elif "'" in line and "," in line:
+                    new_id = line[line.index("'")+1:line.index(",", line.index("'"))]
+                    f_temp.write(line[:line.index("'")] + new_id + line[line.index("'", line.index("'")+1)+1:])
+                elif "'" in line:
+                    f_temp.write(line.replace("'", "").replace(" ", ""))
+                else:
+                    f_temp.write(line)
+
+        os.remove(self.LTP_tree_fp)
+        os.rename(temp_fp, self.LTP_tree_fp)
     
-    @staticmethod
-    def _parse_desc(desc: str) -> tuple:
+    def verify_tree(self) -> bool:
         try:
-            accession = re.findall(r"\[accession=(.*?)\]", desc)[0]
-            species_name = re.findall(r"\[organism=(.*?)\]", desc)[0]
-        except IndexError as e:
-            logging.error(f"Couldn't find accession and/or organism identifier in {desc}")
-            logging.error(f"Skipping this sequence...")
-            return None, None
-        return accession, species_name
+            with open(self.LTP_tree_fp) as f:
+                Tree("".join([l.strip() for l in f.readlines()]))
+        except NewickError as e:
+            logging.error("Error reading tree into ete3")
+            return False
+        
+        return True
+    
+    
 
 
 # Finds similar sequences to the one given with vsearch
